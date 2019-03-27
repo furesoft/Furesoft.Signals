@@ -13,5 +13,21 @@ namespace Furesoft.Signals
             Signal.Subscribe(channel, callback);
             return channel;
         }
+
+        public Action<IpcMessage> ToDelegate()
+        {
+            return new Action<IpcMessage>( msg =>
+            {
+                Signal.Send(this, msg);
+            });
+        }
+
+        public Action<EventType> ToDelegate<EventType>()
+        {
+            return new Action<EventType>( msg =>
+            {
+                Signal.CallEvent(this, msg);
+            });
+        }
     }
 }
