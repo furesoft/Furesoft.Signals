@@ -96,10 +96,10 @@ namespace Furesoft.Signals
             channel.communicator.Write(json);
         }
 
-        public static void CallEvent<EventType>(IpcChannel channel, EventType et)
+        public static void CallEvent<EventArgType>(IpcChannel channel, EventArgType arg)
         {
-            var objid = typeof(EventType).GUID;
-            var serialized = JsonConvert.SerializeObject(et);
+            var objid = typeof(EventArgType).GUID;
+            var serialized = JsonConvert.SerializeObject(arg);
 
             var ms = new MemoryStream();
             var bw = new BinaryWriter(ms);
