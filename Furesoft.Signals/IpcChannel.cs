@@ -1,5 +1,6 @@
 ﻿using Furesoft.Signals.Core;
 using System;
+using System.Threading;
 
 namespace Furesoft.Signals
 {
@@ -7,6 +8,7 @@ namespace Furesoft.Signals
     {
         internal MemoryMappedFileCommunicator communicator;
         internal MemoryMappedFileCommunicator event_communicator;
+
 
         public static IpcChannel operator +(IpcChannel channel, Action<object> callback)
         {
@@ -29,5 +31,6 @@ namespace Furesoft.Signals
                 Signal.CallEvent(this, msg);
             });
         }
+
     }
 }
