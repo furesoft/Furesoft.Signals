@@ -39,15 +39,19 @@ namespace Furesoft.Signals
             channel.communicator = new MemoryMappedFileCommunicator(name, 4096);
             channel.communicator.ReadPosition = 2000;
             channel.communicator.WritePosition = 0;
-
+            channel.communicator.DataReceived += new EventHandler<DataReceivedEventArgs>(Communicator_DataReceived);
             channel.communicator.DataReceived += new EventHandler<DataReceivedEventArgs>(Pipeline_DataReceived);
             channel.communicator.StartReader();
 
             channel.event_communicator = new MemoryMappedFileCommunicator(name + ".events", 4096);
             channel.event_communicator.ReadPosition = 2000;
             channel.event_communicator.WritePosition = 0;
-
             channel.event_communicator.StartReader();
+
+            channel.func_communicator = new MemoryMappedFileCommunicator(name + ".funcs", 4096);
+            channel.func_communicator.ReadPosition = 2000;
+            channel.func_communicator.WritePosition = 0;
+            channel.func_communicator.StartReader();
 
             return channel;
         }
@@ -73,6 +77,12 @@ namespace Furesoft.Signals
             channel.event_communicator.WritePosition = 2000;
             channel.event_communicator.ReadPosition = 0;
             channel.event_communicator.StartReader();
+
+            //initialize func communicator
+            channel.func_communicator = new MemoryMappedFileCommunicator(name + ".funcs", 4096);
+            channel.func_communicator.WritePosition = 2000;
+            channel.func_communicator.ReadPosition = 0;
+            channel.func_communicator.StartReader();
 
             return channel;
         }
@@ -128,7 +138,8 @@ namespace Furesoft.Signals
 
             channel.event_communicator.Write(ms.ToArray());
         }
-        public static void CollectShared(IpcChannel channel)
+
+        public static void CollectAllShared(IpcChannel channel)
         {
             var assembly = Assembly.GetCallingAssembly();
 
@@ -150,7 +161,6 @@ namespace Furesoft.Signals
                 }
             } 
         }
-
         public static SharedObject<T> CreateSharedObject<T>(int id, bool sender = false)
         {
             if(sender)
