@@ -21,7 +21,7 @@ namespace TestSender
             shared_arr = Signal.CreateSharedObject<int[]>(0xFF00DF);
             shared_arr += (_) => Console.WriteLine(_);
 
-            shared_arr.SetValue(new int[] { 42, 5, 3, 6 });
+            shared_arr += new int[] { 42, 5, 3, 6 };
 
             Console.ReadLine();
         }
