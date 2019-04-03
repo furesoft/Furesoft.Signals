@@ -15,9 +15,10 @@ before_build:
   - cmd: dotnet restore ./Furesoft.Signals/Furesoft.Signals.csproj --verbosity m
 build_script:
   # output will be in ./src/bin/debug/netcoreapp1.1/publish
-  - cmd: dotnet publish ./Furesoft.Signals/Furesoft.Signals.csproj
-after_build:
-  # For once the build has completed
+  - cmd: dotnet publish ./Furesoft.Signals/Furesoft.Signals.csproj --output %appveyor_build_folder%\dist
+
+artifacts:
+- path: dist
 
 clone_depth: 1
 on_finish :
