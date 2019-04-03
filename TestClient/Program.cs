@@ -31,7 +31,7 @@ namespace TestClient
 
                 if (arg < 0) break;
 
-                shared.SetValue(arg);
+                shared += arg;
             }
 
             Console.ReadLine();
