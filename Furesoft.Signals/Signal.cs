@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Text;
-using System.Threading;
 using Furesoft.Signals.Core;
 using Newtonsoft.Json;
 
@@ -109,6 +108,16 @@ namespace Furesoft.Signals
             bw.Write(serialized);
 
             channel.event_communicator.Write(ms.ToArray());
+        }
+
+        public static SharedObject<T> CreateSharedObject<T>(int id, bool sender = false)
+        {
+            if(sender)
+            {
+                return SharedObject<T>.CreateSender(id);
+            }
+
+            return SharedObject<T>.CreateReciever(id);
         }
     }
 }
