@@ -10,6 +10,7 @@ namespace Furesoft.Signals
     {
         internal MemoryMappedFileCommunicator communicator;
         internal MemoryMappedFileCommunicator event_communicator;
+        internal MemoryMappedFileCommunicator func_communicator;
 
         internal Dictionary<int, MethodInfo> shared_functions = new Dictionary<int, MethodInfo>();
 
