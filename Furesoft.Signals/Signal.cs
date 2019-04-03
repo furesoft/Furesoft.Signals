@@ -2,7 +2,9 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Reflection;
 using System.Text;
+using Furesoft.Signals.Attributes;
 using Furesoft.Signals.Core;
 using Newtonsoft.Json;
 
@@ -125,6 +127,28 @@ namespace Furesoft.Signals
             bw.Write(serialized);
 
             channel.event_communicator.Write(ms.ToArray());
+        }
+        public static void CollectShared(IpcChannel channel)
+        {
+            var assembly = Assembly.GetCallingAssembly();
+
+            foreach (var t in assembly.GetTypes())
+            {
+                var attr = t.GetCustomAttribute<SharedAttribute>();
+
+                if(attr != null)
+                {
+                    {
+                    foreach (var m in t.GetMethods())
+                        var mattr = m.GetCustomAttribute<SharedFunctionAttribute>();
+
+                        if(mattr != null)
+                        {
+                            channel.shared_functions.Add(mattr.ID, m);
+                        }
+                    }
+                }
+            } 
         }
 
         public static SharedObject<T> CreateSharedObject<T>(int id, bool sender = false)
