@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -109,6 +109,16 @@ namespace Furesoft.Signals
             bw.Write(serialized);
 
             channel.event_communicator.Write(ms.ToArray());
+        }
+
+        public static SharedObject<T> CreateSharedObject<T>(int id, bool sender = false)
+        {
+            if(sender)
+            {
+                return SharedObject<T>.CreateSender(id);
+            }
+
+            return SharedObject<T>.CreateReciever(id);
         }
     }
 }
