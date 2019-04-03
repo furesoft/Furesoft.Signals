@@ -143,23 +143,28 @@ namespace Furesoft.Signals
         {
             var assembly = Assembly.GetCallingAssembly();
 
-            foreach (var t in assembly.GetTypes())
+            CollectShared(channel, assembly.GetTypes());
+        }
+
+        public static void CollectShared(IpcChannel channel, params Type[] types)
+        {
+            foreach (var t in types)
             {
                 var attr = t.GetCustomAttribute<SharedAttribute>();
 
-                if(attr != null)
+                if (attr != null)
                 {
                     {
                     foreach (var m in t.GetMethods())
                         var mattr = m.GetCustomAttribute<SharedFunctionAttribute>();
 
-                        if(mattr != null)
+                        if (mattr != null)
                         {
                             channel.shared_functions.Add(mattr.ID, m);
                         }
                     }
                 }
-            } 
+            }
         }
         public static SharedObject<T> CreateSharedObject<T>(int id, bool sender = false)
         {
