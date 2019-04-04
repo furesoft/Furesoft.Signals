@@ -12,6 +12,8 @@ namespace Furesoft.Signals
         internal MemoryMappedFileCommunicator event_communicator;
         internal MemoryMappedFileCommunicator func_communicator;
 
+        internal object ReturnValue;
+
         internal Dictionary<int, MethodInfo> shared_functions = new Dictionary<int, MethodInfo>();
 
         public static IpcChannel operator +(IpcChannel channel, Action<object> callback)

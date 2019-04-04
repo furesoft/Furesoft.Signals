@@ -4,6 +4,7 @@ using System.IO;
 using System.Linq;
 using System.Reflection;
 using System.Text;
+using System.Threading;
 using Furesoft.Signals.Attributes;
 using Furesoft.Signals.Core;
 using Newtonsoft.Json;
@@ -87,6 +88,8 @@ namespace Furesoft.Signals
             return channel;
         }
 
+        static ManualResetEvent mre = new ManualResetEvent(false);
+
         public static IpcChannel CreateRecieverChannel(int name)
         {
             return CreateRecieverChannel(name.ToString());
@@ -103,6 +106,23 @@ namespace Furesoft.Signals
 
                 request.Callback(obj);
             }
+        }
+
+        public static object CallMethod(IpcChannel channel, int id, object arg)
+        {
+            mre.Reset();
+
+            var m = new FunctionCallRequest
+            {
+                ID = id,
+                Parameter = JsonConvert.SerializeObject(arg)
+            };
+
+            channel.communicator.Write(JsonConvert.SerializeObject(m));
+
+            mre.WaitOne();
+
+            return channel.ReturnValue;
         }
 
         public static void Recieve<T>(Action<T> callback)
@@ -161,6 +181,28 @@ namespace Furesoft.Signals
                         if (mattr != null)
                         {
                             channel.shared_functions.Add(mattr.ID, m);
+                            channel.communicator.DataReceived += (s, e) =>
+                             {
+                                 var obj = JsonConvert.DeserializeObject<FunctionCallRequest>(Encoding.ASCII.GetString(e.Data));
+
+                                 if (obj is FunctionCallRequest awnser)
+                                 {
+                                     if (awnser.ReturnValue == null)
+                                     {
+                                         var res = channel.shared_functions[awnser.ID].Invoke(null, new[] { obj.Parameter });
+
+                                         awnser.ReturnValue = res;
+
+                                         channel.communicator.Write(JsonConvert.SerializeObject(awnser));
+                                     }
+                                     else
+                                     {
+                                         channel.ReturnValue = awnser.ReturnValue;
+                                     }
+                                 }
+
+                                 mre.Set();
+                             };
                         }
                     }
                 }
