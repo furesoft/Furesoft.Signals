@@ -12,6 +12,9 @@ namespace Furesoft.Signals
     {
         private static Queue<RecieveRequest> recieveQueue = new Queue<RecieveRequest>();
 
+        public static Pipeline<IpcMessage> BeforeSignal = new Pipeline<IpcMessage>();
+        public static Pipeline<object> AfterSignal = new Pipeline<object>();
+
         public static void Subscribe<EventType>(IpcChannel channel, Action<EventType> callback)
         {
             channel.event_communicator.DataReceived += (s, e) =>
@@ -35,7 +38,7 @@ namespace Furesoft.Signals
             channel.communicator.ReadPosition = 2000;
             channel.communicator.WritePosition = 0;
 
-            channel.communicator.DataReceived += new EventHandler<DataReceivedEventArgs>(Communicator_DataReceived);
+            channel.communicator.DataReceived += new EventHandler<DataReceivedEventArgs>(Pipeline_DataReceived);
             channel.communicator.StartReader();
 
             channel.event_communicator = new MemoryMappedFileCommunicator(name + ".events", 4096);
@@ -55,7 +58,7 @@ namespace Furesoft.Signals
             channel.communicator = new MemoryMappedFileCommunicator(name, 4096);
             channel.communicator.WritePosition = 2000;
             channel.communicator.ReadPosition = 0;
-            channel.communicator.DataReceived += new EventHandler<DataReceivedEventArgs>(Communicator_DataReceived);
+            channel.communicator.DataReceived += new EventHandler<DataReceivedEventArgs>(Pipeline_DataReceived);
             channel.communicator.StartReader();
 
             //initialize event communicator
@@ -67,12 +70,14 @@ namespace Furesoft.Signals
             return channel;
         }
 
-        private static void Communicator_DataReceived(object sender, DataReceivedEventArgs e)
+        private static void Pipeline_DataReceived(object sender, DataReceivedEventArgs e)
         {
             if (recieveQueue.Count > 0)
             {
                 var request = recieveQueue.Dequeue();
                 var obj = JsonConvert.DeserializeObject(Encoding.ASCII.GetString(e.Data), request.Type);
+
+                obj = AfterSignal.Invoke(obj);
 
                 request.Callback(obj);
             }
@@ -91,8 +96,10 @@ namespace Furesoft.Signals
 
         public static void Send(IpcChannel channel, IpcMessage msg)
         {
+            msg = BeforeSignal.Invoke(msg);
+
             var json = JsonConvert.SerializeObject(msg);
-            
+
             channel.communicator.Write(json);
         }
 

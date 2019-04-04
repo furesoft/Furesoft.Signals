@@ -81,5 +81,12 @@ namespace Furesoft.Signals
 
             return obj;
         }
+
+        public static SharedObject<T> operator +(SharedObject<T> obj, T value)
+        {
+            obj.SetValue(value);
+
+            return obj;
+        }
     }
 }
