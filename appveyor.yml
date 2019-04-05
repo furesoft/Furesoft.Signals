@@ -24,6 +24,7 @@ clone_depth: 1
 
 artifacts:
   - path: '**\*.nupkg' # find all NuGet packages recursively
+  - path: '**\*.dll' 
 deploy:
   provider: NuGet
   api_key:
