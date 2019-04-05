@@ -14,15 +14,14 @@ before_build:
   
 build:
   verbosity: minimal
+  
 after_build:
 - cmd: dotnet publish Furesoft.Signals --output %appveyor_build_folder%
 
 clone_depth: 1
-on_finish :
-  # any cleanup in here
+
 deploy:
   provider: NuGet
   api_key:
     secure: Qi2ST6B2VSqjhKVXiZa1ncyvRvTZ1J3b6v5GFsYOdc734Tzbg5Wexogz2ZC59C2g
   skip_symbols: false
-  artifact: /.*\.nupkg/
