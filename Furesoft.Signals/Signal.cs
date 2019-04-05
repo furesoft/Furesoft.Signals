@@ -1,3 +1,6 @@
+using Furesoft.Signals.Attributes;
+using Furesoft.Signals.Core;
+using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -5,9 +8,6 @@ using System.Linq;
 using System.Reflection;
 using System.Text;
 using System.Threading;
-using Furesoft.Signals.Attributes;
-using Furesoft.Signals.Core;
-using Newtonsoft.Json;
 
 namespace Furesoft.Signals
 {
@@ -88,7 +88,7 @@ namespace Furesoft.Signals
             return channel;
         }
 
-        static ManualResetEvent mre = new ManualResetEvent(false);
+        private static ManualResetEvent mre = new ManualResetEvent(false);
 
         public static IpcChannel CreateRecieverChannel(int name)
         {
@@ -112,6 +112,7 @@ namespace Furesoft.Signals
         {
             mre.Reset();
             T ret = default(T);
+            Optional<string> errorMessage = false;
 
             channel.communicator.DataReceived += (s, e) =>
               {
@@ -119,7 +120,15 @@ namespace Furesoft.Signals
 
                   if (resp.ID == id)
                   {
-                      ret = JsonConvert.DeserializeObject<T>(resp.ReturnValue);
+                      if (string.IsNullOrEmpty(resp.ErrorMessage))
+                      {
+                          ret = JsonConvert.DeserializeObject<T>(resp.ReturnValue);
+                      }
+                      else
+                      {
+                          errorMessage = resp.ErrorMessage.ToOptional();
+                      }
+
                       mre.Set();
                   }
               };
@@ -127,12 +136,17 @@ namespace Furesoft.Signals
             var m = new FunctionCallRequest
             {
                 ID = id,
-                ParameterJson = arg.Select(_=> JsonConvert.SerializeObject(_)).ToArray() 
+                ParameterJson = arg.Select(_ => JsonConvert.SerializeObject(_)).ToArray()
             };
 
             channel.communicator.Write(JsonConvert.SerializeObject(m));
 
             mre.WaitOne();
+
+            if (errorMessage)
+            {
+                throw new Exception(errorMessage);
+            }
 
             return ret;
         }
@@ -140,7 +154,8 @@ namespace Furesoft.Signals
         public static void Recieve<T>(Action<T> callback)
         {
             recieveQueue.Enqueue(
-                new RecieveRequest {
+                new RecieveRequest
+                {
                     Type = typeof(T),
                     Callback = new Action<object>(
                         o => callback((T)o)),
@@ -198,14 +213,39 @@ namespace Furesoft.Signals
                                  {
                                      var obj = JsonConvert.DeserializeObject<FunctionCallRequest>(Encoding.ASCII.GetString(e.Data));
 
-                                     var args = GetDeserializedParameters(channel.shared_functions[obj.ID].GetParameters(), obj.ParameterJson);
-                                     var res = channel.shared_functions[obj.ID].Invoke(null, args);
+                                     Optional<string> error = false;
+                                     object res = null;
+                                     object[] args = null;
+
+                                     ParameterInfo[] parameterInfo = channel.shared_functions[obj.ID].GetParameters();
+
+                                     if (IsArgumentMismatch(parameterInfo, obj.ParameterJson))
+                                     {
+                                         error = $"Argument Mismatch on Function '{obj.ID}'".ToOptional();
+                                     }
+                                     else
+                                     {
+                                         args = GetDeserializedParameters(parameterInfo, obj.ParameterJson);
+                                     }
+
+                                     try
+                                     {
+                                         res = channel.shared_functions[obj.ID].Invoke(null, args);
+                                     }
+                                     catch (Exception ex)
+                                     {
+                                         error = ex.Message.ToOptional();
+                                     }
 
                                      var resp = new FunctionCallResponse
                                      {
-                                         ID = obj.ID,
-                                         ReturnValue = JsonConvert.SerializeObject(res)
+                                         ID = obj.ID
                                      };
+
+                                     if (!error)
+                                     {
+                                         resp.ReturnValue = JsonConvert.SerializeObject(res);
+                                     }
 
                                      channel.communicator.Write(JsonConvert.SerializeObject(resp));
                                  };
@@ -214,6 +254,11 @@ namespace Furesoft.Signals
                     }
                 }
             }
+        }
+
+        private static bool IsArgumentMismatch(ParameterInfo[] parameterInfo, string[] parameterJson)
+        {
+            return parameterInfo.Length != parameterJson.Length;
         }
 
         private static object[] GetDeserializedParameters(ParameterInfo[] parameterInfo, string[] parameterJson)
@@ -225,9 +270,10 @@ namespace Furesoft.Signals
             }
             return res.ToArray();
         }
+
         public static SharedObject<T> CreateSharedObject<T>(int id, bool sender = false)
         {
-            if(sender)
+            if (sender)
             {
                 return SharedObject<T>.CreateSender(id);
             }

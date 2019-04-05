@@ -1,8 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.ComponentModel;
 using System.IO.MemoryMappedFiles;
 using System.Threading;
-using System.ComponentModel;
 
 namespace Furesoft.Signals.Core
 {
@@ -15,16 +15,18 @@ namespace Furesoft.Signals.Core
         private const int DATA_LENGTH_OFFSET = READ_CONFIRM_OFFSET + 1;
         private const int DATA_OFFSET = DATA_LENGTH_OFFSET + 10;
 
-        #endregion  
-        
+        #endregion Constants
+
         #region Properties
 
         public MemoryMappedFile MappedFile { get; set; }
+
         public event EventHandler<DataReceivedEventArgs> DataReceived;
 
         public int ReadPosition { get; set; }
 
         private int writePosition;
+
         public int WritePosition
         {
             get { return writePosition; }
@@ -38,7 +40,7 @@ namespace Furesoft.Signals.Core
             }
         }
 
-        #endregion
+        #endregion Properties
 
         private MemoryMappedViewAccessor view;
         private AsyncOperation operation;
@@ -168,7 +170,7 @@ namespace Furesoft.Signals.Core
 
                     // Sets the flag used to signal that there aren't available data anymore.
                     view.Write(ReadPosition + DATA_AVAILABLE_OFFSET, false);
-                    // Sets the flag used to signal that data has been read. 
+                    // Sets the flag used to signal that data has been read.
                     view.Write(ReadPosition + READ_CONFIRM_OFFSET, true);
 
                     DataReceivedEventArgs args = new DataReceivedEventArgs(bytes, read);
@@ -219,6 +221,6 @@ namespace Furesoft.Signals.Core
             GC.SuppressFinalize(this);
         }
 
-        #endregion
+        #endregion IDisposable
     }
 }

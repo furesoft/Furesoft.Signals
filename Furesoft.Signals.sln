@@ -5,13 +5,18 @@ VisualStudioVersion = 15.0.28307.489
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Furesoft.Signals", "Furesoft.Signals\Furesoft.Signals.csproj", "{1870DF13-2B57-4842-9A47-0D922627BB3D}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TestClient", "TestClient\TestClient.csproj", "{698E9F51-2406-439B-8D1B-96B452E5BF8B}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "TestClient", "TestClient\TestClient.csproj", "{698E9F51-2406-439B-8D1B-96B452E5BF8B}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TestSender", "TestSender\TestSender.csproj", "{B6927777-D17F-4906-B0D1-79F3F22F7733}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "TestSender", "TestSender\TestSender.csproj", "{B6927777-D17F-4906-B0D1-79F3F22F7733}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Test", "Test", "{6926022E-1207-486B-B9CC-751CBE12FBA5}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TestModels", "TestModels\TestModels.csproj", "{DFD342DC-3442-43DA-9D85-D7C91847DA6D}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "TestModels", "TestModels\TestModels.csproj", "{DFD342DC-3442-43DA-9D85-D7C91847DA6D}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{601C9790-8717-4A3B-B551-7C6469476DC9}"
+	ProjectSection(SolutionItems) = preProject
+		appveyor.yml = appveyor.yml
+	EndProjectSection
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

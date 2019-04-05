@@ -1,5 +1,4 @@
 ﻿using Furesoft.Signals;
-using System;
 
 namespace TestModels
 {

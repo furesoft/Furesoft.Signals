@@ -4,5 +4,7 @@
     {
         public int ID { get; set; }
         public string ReturnValue { get; set; }
+
+        public string ErrorMessage { get; set; }
     }
 }

@@ -1,27 +1,25 @@
 ﻿using Furesoft.Signals;
-using Furesoft.Signals.Attributes;
 using System;
 using TestModels;
 
 namespace TestSender
 {
-    
-    class Program
+    internal class Program
     {
-        static SharedObject<int> shared;
-        static SharedObject<int[]> shared_arr;
+        private static SharedObject<int> shared;
+        private static SharedObject<int[]> shared_arr;
 
-        static void Main(string[] args)
+        private static void Main(string[] args)
         {
             var channel = Signal.CreateRecieverChannel("signals.test");
 
             Signal.CallEvent(channel, new PingArg { Message = "hello world" });
 
-            var res = Signal.CallMethod<PingArg>(channel, 0xC0FFEE, new PingArg { Message = "ping" });
+            var res = Signal.CallMethod<PingArg>(channel, 0xC0FFEE, new PingArg { Message = "ping" }, true);
 
             shared = Signal.CreateSharedObject<int>(0xFF00DE);
             shared += (_) => Console.WriteLine(_);
-            
+
             shared_arr = Signal.CreateSharedObject<int[]>(0xFF00DF);
             shared_arr += (_) => Console.WriteLine(_);
 
@@ -30,5 +28,4 @@ namespace TestSender
             Console.ReadLine();
         }
     }
- 
 }

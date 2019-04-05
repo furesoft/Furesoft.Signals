@@ -2,7 +2,6 @@
 using System;
 using System.Collections.Generic;
 using System.Reflection;
-using System.Threading;
 
 namespace Furesoft.Signals
 {
@@ -22,19 +21,18 @@ namespace Furesoft.Signals
 
         public Action<IpcMessage> ToDelegate()
         {
-            return new Action<IpcMessage>( msg =>
-            {
-                Signal.Send(this, msg);
-            });
+            return new Action<IpcMessage>(msg =>
+           {
+               Signal.Send(this, msg);
+           });
         }
 
         public Action<EventType> ToDelegate<EventType>()
         {
-            return new Action<EventType>( msg =>
-            {
-                Signal.CallEvent(this, msg);
-            });
+            return new Action<EventType>(msg =>
+           {
+               Signal.CallEvent(this, msg);
+           });
         }
-
     }
 }

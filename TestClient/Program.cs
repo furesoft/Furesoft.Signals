@@ -1,18 +1,17 @@
 ﻿using Furesoft.Signals;
 using Furesoft.Signals.Attributes;
-using Newtonsoft.Json;
 using System;
 using TestModels;
 
 namespace TestClient
 {
     [Shared]
-    class Program
+    internal class Program
     {
-        static SharedObject<int> shared;
-        static SharedObject<int[]> shared_arr;
+        private static SharedObject<int> shared;
+        private static SharedObject<int[]> shared_arr;
 
-        static void Main(string[] args)
+        private static void Main(string[] args)
         {
             var channel = Signal.CreateSenderChannel("signals.test");
 
@@ -28,14 +27,15 @@ namespace TestClient
 
             Signal.CollectAllShared(channel);
 
-            while (true) { 
+            while (true)
+            {
                 var input = Console.ReadLine();
                 var arg = int.Parse(input);
                 if (arg < 0) break;
 
                 shared += arg;
             }
-            
+
             Console.ReadLine();
         }
 
