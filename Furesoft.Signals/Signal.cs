@@ -41,7 +41,7 @@ namespace Furesoft.Signals
             channel.communicator.ReadPosition = 2000;
             channel.communicator.WritePosition = 0;
             channel.communicator.DataReceived += new EventHandler<DataReceivedEventArgs>(Communicator_DataReceived);
-            channel.communicator.DataReceived += new EventHandler<DataReceivedEventArgs>(Pipeline_DataReceived);
+
             channel.communicator.StartReader();
 
             channel.event_communicator = new MemoryMappedFileCommunicator(name + ".events", 4096);
@@ -70,7 +70,7 @@ namespace Furesoft.Signals
             channel.communicator = new MemoryMappedFileCommunicator(name, 4096);
             channel.communicator.WritePosition = 2000;
             channel.communicator.ReadPosition = 0;
-            channel.communicator.DataReceived += new EventHandler<DataReceivedEventArgs>(Pipeline_DataReceived);
+            channel.communicator.DataReceived += new EventHandler<DataReceivedEventArgs>(Communicator_DataReceived);
             channel.communicator.StartReader();
 
             //initialize event communicator
@@ -95,7 +95,7 @@ namespace Furesoft.Signals
             return CreateRecieverChannel(name.ToString());
         }
 
-        private static void Pipeline_DataReceived(object sender, DataReceivedEventArgs e)
+        private static void Communicator_DataReceived(object sender, DataReceivedEventArgs e)
         {
             if (recieveQueue.Count > 0)
             {
@@ -187,27 +187,29 @@ namespace Furesoft.Signals
                 if (attr != null)
                 {
                     {
-                    foreach (var m in t.GetMethods())
-                        var mattr = m.GetCustomAttribute<SharedFunctionAttribute>();
-
-                        if (mattr != null)
+                        foreach (var m in t.GetMethods())
                         {
-                            channel.shared_functions.Add(mattr.ID, m);
-                            channel.communicator.DataReceived += (s, e) =>
-                             {
-                                 var obj = JsonConvert.DeserializeObject<FunctionCallRequest>(Encoding.ASCII.GetString(e.Data));
+                            var mattr = m.GetCustomAttribute<SharedFunctionAttribute>();
 
-                                 var args = GetDeserializedParameters(channel.shared_functions[obj.ID].GetParameters(), obj.ParameterJson);
-                                 var res = channel.shared_functions[obj.ID].Invoke(null, args);
-
-                                 var resp = new FunctionCallResponse
+                            if (mattr != null)
+                            {
+                                channel.shared_functions.Add(mattr.ID, m);
+                                channel.communicator.DataReceived += (s, e) =>
                                  {
-                                     ID = obj.ID,
-                                     ReturnValue = JsonConvert.SerializeObject(res)
-                                 };
+                                     var obj = JsonConvert.DeserializeObject<FunctionCallRequest>(Encoding.ASCII.GetString(e.Data));
 
-                                 channel.communicator.Write(JsonConvert.SerializeObject(resp));
-                             };
+                                     var args = GetDeserializedParameters(channel.shared_functions[obj.ID].GetParameters(), obj.ParameterJson);
+                                     var res = channel.shared_functions[obj.ID].Invoke(null, args);
+
+                                     var resp = new FunctionCallResponse
+                                     {
+                                         ID = obj.ID,
+                                         ReturnValue = JsonConvert.SerializeObject(res)
+                                     };
+
+                                     channel.communicator.Write(JsonConvert.SerializeObject(resp));
+                                 };
+                            }
                         }
                     }
                 }
