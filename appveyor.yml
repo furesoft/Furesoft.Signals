@@ -25,4 +25,4 @@ deploy:
   api_key:
     secure: Qi2ST6B2VSqjhKVXiZa1ncyvRvTZ1J3b6v5GFsYOdc734Tzbg5Wexogz2ZC59C2g
   skip_symbols: false
-  artifact: /.*\.nupkg/
+  artifact: %appveyor_build_folder%\dist/*\.nupkg/
