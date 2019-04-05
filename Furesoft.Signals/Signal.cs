@@ -18,10 +18,15 @@ namespace Furesoft.Signals
         public static Pipeline<IpcMessage> BeforeSignal = new Pipeline<IpcMessage>();
         public static Pipeline<object> AfterSignal = new Pipeline<object>();
 
+        public static Pipeline<byte[]> BeforeSendPipe = new Pipeline<byte[]>();
+        public static Pipeline<byte[]> BeforeRecievePipe = new Pipeline<byte[]>();
+
         public static void Subscribe<EventType>(IpcChannel channel, Action<EventType> callback)
         {
             channel.event_communicator.DataReceived += (s, e) =>
             {
+                e.Data = BeforeRecievePipe.Invoke(e.Data);
+
                 var objid = typeof(EventType).GUID;
 
                 if (objid == new Guid(e.Data.Take(16).ToArray()))
@@ -97,6 +102,8 @@ namespace Furesoft.Signals
 
         private static void Communicator_DataReceived(object sender, DataReceivedEventArgs e)
         {
+            e.Data = BeforeRecievePipe.Invoke(e.Data);
+
             if (recieveQueue.Count > 0)
             {
                 var request = recieveQueue.Dequeue();
@@ -117,6 +124,8 @@ namespace Furesoft.Signals
 
             channel.communicator.DataReceived += (s, e) =>
               {
+                  e.Data = BeforeRecievePipe.Invoke(e.Data);
+
                   var resp = JsonConvert.DeserializeObject<FunctionCallResponse>(Encoding.ASCII.GetString(e.Data));
 
                   if (resp.ID == id)
@@ -143,7 +152,9 @@ namespace Furesoft.Signals
                 ParameterJson = arg.Select(_ => JsonConvert.SerializeObject(_)).ToArray()
             };
 
-            channel.communicator.Write(JsonConvert.SerializeObject(m));
+            var raw = BeforeSendPipe + Encoding.ASCII.GetBytes(JsonConvert.SerializeObject(m));
+
+            channel.communicator.Write(raw);
 
             mre.WaitOne();
 
@@ -172,8 +183,9 @@ namespace Furesoft.Signals
             msg = BeforeSignal.Invoke(msg);
 
             var json = JsonConvert.SerializeObject(msg);
+            var raw = BeforeSendPipe + Encoding.ASCII.GetBytes(json);
 
-            channel.communicator.Write(json);
+            channel.communicator.Write(raw);
         }
 
         public static void CallEvent<EventType>(IpcChannel channel, EventType et)
@@ -187,7 +199,9 @@ namespace Furesoft.Signals
             bw.Write(objid.ToByteArray());
             bw.Write(serialized);
 
-            channel.event_communicator.Write(ms.ToArray());
+            var raw = BeforeSendPipe + ms.ToArray();
+
+            channel.event_communicator.Write(raw);
         }
 
         public static void CollectAllShared(IpcChannel channel)
@@ -251,7 +265,8 @@ namespace Furesoft.Signals
                                          resp.ErrorMessage = error;
                                      }
 
-                                     channel.communicator.Write(JsonConvert.SerializeObject(resp));
+                                     var raw = BeforeSendPipe + Encoding.ASCII.GetBytes(JsonConvert.SerializeObject(resp));
+                                     channel.communicator.Write(raw);
                                  };
                             }
                         }

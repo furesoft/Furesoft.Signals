@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 
 namespace Furesoft.Signals
 {
@@ -26,12 +27,22 @@ namespace Furesoft.Signals
         {
             var res = default(TArg);
 
+            if (!_items.Any())
+            {
+                return arg;
+            }
+
             foreach (var cb in _items)
             {
                 res = cb(arg);
             }
 
             return res;
+        }
+
+        public static TArg operator +(Pipeline<TArg> target, TArg value)
+        {
+            return target.Invoke(value);
         }
     }
 }

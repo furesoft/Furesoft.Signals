@@ -23,6 +23,7 @@ namespace Furesoft.Signals
             obj.communicator.WritePosition = 0;
             obj.communicator.DataReceived += (s, e) =>
             {
+                e.Data = Signal.BeforeRecievePipe.Invoke(e.Data);
                 var o = JsonConvert.DeserializeObject<T>(Encoding.ASCII.GetString(e.Data));
 
                 obj._callbacks.ForEach(_ =>
@@ -46,6 +47,8 @@ namespace Furesoft.Signals
             obj.communicator.WritePosition = 2000;
             obj.communicator.DataReceived += (s, e) =>
             {
+                e.Data = Signal.BeforeRecievePipe.Invoke(e.Data);
+
                 var o = JsonConvert.DeserializeObject<T>(Encoding.ASCII.GetString(e.Data));
 
                 obj._callbacks.ForEach(_ =>
@@ -72,7 +75,8 @@ namespace Furesoft.Signals
 
         public void SetValue(T value)
         {
-            communicator.Write(Encoding.ASCII.GetBytes(JsonConvert.SerializeObject(value)));
+            var raw = Signal.BeforeSendPipe.Invoke(Encoding.ASCII.GetBytes(JsonConvert.SerializeObject(value)));
+            communicator.Write(raw);
         }
 
         public static SharedObject<T> operator +(SharedObject<T> obj, Action<T> callback)

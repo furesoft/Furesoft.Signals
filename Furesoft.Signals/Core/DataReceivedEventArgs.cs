@@ -4,7 +4,7 @@ namespace Furesoft.Signals.Core
 {
     internal class DataReceivedEventArgs : EventArgs
     {
-        public byte[] Data { get; private set; }
+        public byte[] Data { get; set; }
 
         internal DataReceivedEventArgs(byte[] data, long length)
         {
