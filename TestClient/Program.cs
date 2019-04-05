@@ -40,8 +40,10 @@ namespace TestClient
         }
 
         [SharedFunction(0xC0FFEE)]
-        public static PingArg Pong(PingArg arg)
+        public static PingArg Pong(PingArg arg, bool active, object notnull)
         {
+            if (notnull == null) throw new ArgumentException(nameof(notnull));
+
             return new PingArg { Message = "/PONG" };
         }
     }

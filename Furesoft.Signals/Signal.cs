@@ -108,6 +108,7 @@ namespace Furesoft.Signals
             }
         }
 
+        [System.Diagnostics.DebuggerStepThrough]
         public static T CallMethod<T>(IpcChannel channel, int id, params object[] arg)
         {
             mre.Reset();
@@ -122,7 +123,10 @@ namespace Furesoft.Signals
                   {
                       if (string.IsNullOrEmpty(resp.ErrorMessage))
                       {
-                          ret = JsonConvert.DeserializeObject<T>(resp.ReturnValue);
+                          if (resp.ReturnValue != null)
+                          {
+                              ret = JsonConvert.DeserializeObject<T>(resp.ReturnValue);
+                          }
                       }
                       else
                       {
@@ -217,13 +221,9 @@ namespace Furesoft.Signals
                                      object res = null;
                                      object[] args = null;
 
-                                     ParameterInfo[] parameterInfo = channel.shared_functions[obj.ID].GetParameters();
+                                     var parameterInfo = channel.shared_functions[obj.ID].GetParameters();
 
-                                     if (IsArgumentMismatch(parameterInfo, obj.ParameterJson))
-                                     {
-                                         error = $"Argument Mismatch on Function '{obj.ID}'".ToOptional();
-                                     }
-                                     else
+                                     if (!IsArgumentMismatch(parameterInfo, obj.ParameterJson))
                                      {
                                          args = GetDeserializedParameters(parameterInfo, obj.ParameterJson);
                                      }
@@ -245,6 +245,10 @@ namespace Furesoft.Signals
                                      if (!error)
                                      {
                                          resp.ReturnValue = JsonConvert.SerializeObject(res);
+                                     }
+                                     else
+                                     {
+                                         resp.ErrorMessage = error;
                                      }
 
                                      channel.communicator.Write(JsonConvert.SerializeObject(resp));
