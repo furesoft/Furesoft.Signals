@@ -108,21 +108,33 @@ namespace Furesoft.Signals
             }
         }
 
-        public static object CallMethod(IpcChannel channel, int id, object arg)
+        public static T CallMethod<T>(IpcChannel channel, int id, params object[] arg)
         {
             mre.Reset();
+            T ret = default(T);
+
+            channel.communicator.DataReceived += (s, e) =>
+              {
+                  var resp = JsonConvert.DeserializeObject<FunctionCallResponse>(Encoding.ASCII.GetString(e.Data));
+
+                  if (resp.ID == id)
+                  {
+                      ret = JsonConvert.DeserializeObject<T>(resp.ReturnValue);
+                      mre.Set();
+                  }
+              };
 
             var m = new FunctionCallRequest
             {
                 ID = id,
-                Parameter = JsonConvert.SerializeObject(arg)
+                ParameterJson = arg.Select(_=> JsonConvert.SerializeObject(_)).ToArray() 
             };
 
             channel.communicator.Write(JsonConvert.SerializeObject(m));
 
             mre.WaitOne();
 
-            return channel.ReturnValue;
+            return ret;
         }
 
         public static void Recieve<T>(Action<T> callback)
@@ -185,28 +197,31 @@ namespace Furesoft.Signals
                              {
                                  var obj = JsonConvert.DeserializeObject<FunctionCallRequest>(Encoding.ASCII.GetString(e.Data));
 
-                                 if (obj is FunctionCallRequest awnser)
+                                 var args = GetDeserializedParameters(channel.shared_functions[obj.ID].GetParameters(), obj.ParameterJson);
+                                 var res = channel.shared_functions[obj.ID].Invoke(null, args);
+
+                                 var resp = new FunctionCallResponse
                                  {
-                                     if (awnser.ReturnValue == null)
-                                     {
-                                         var res = channel.shared_functions[awnser.ID].Invoke(null, new[] { obj.Parameter });
+                                     ID = obj.ID,
+                                     ReturnValue = JsonConvert.SerializeObject(res)
+                                 };
 
-                                         awnser.ReturnValue = res;
-
-                                         channel.communicator.Write(JsonConvert.SerializeObject(awnser));
-                                     }
-                                     else
-                                     {
-                                         channel.ReturnValue = awnser.ReturnValue;
-                                     }
-                                 }
-
-                                 mre.Set();
+                                 channel.communicator.Write(JsonConvert.SerializeObject(resp));
                              };
                         }
                     }
                 }
             }
+        }
+
+        private static object[] GetDeserializedParameters(ParameterInfo[] parameterInfo, string[] parameterJson)
+        {
+            var res = new List<object>();
+            for (int i = 0; i < parameterJson.Length; i++)
+            {
+                res.Add(JsonConvert.DeserializeObject(parameterJson[i], parameterInfo[i].ParameterType));
+            }
+            return res.ToArray();
         }
         public static SharedObject<T> CreateSharedObject<T>(int id, bool sender = false)
         {
