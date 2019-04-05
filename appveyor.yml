@@ -18,14 +18,12 @@ build:
   verbosity: minimal
   
 after_build:
-- cmd: dotnet publish Furesoft.Signals --output %appveyor_build_folder%
+    - cmd: dotnet publish Furesoft.Signals --output %appveyor_build_folder%
 
 clone_depth: 1
 
 artifacts:
-  - path: %appveyor_build_folder%/Furesoft.Signals.dll
-    name: MyApp
-    
+  - path: '**\*.nupkg' # find all NuGet packages recursively
 deploy:
   provider: NuGet
   api_key:
