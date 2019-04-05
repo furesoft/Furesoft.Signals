@@ -38,11 +38,9 @@ namespace TestClient
         }
 
         [SharedFunction(0xC0FFEE)]
-        public static PingArg Pong(string argRaw)
+        public static PingArg Pong(PingArg arg)
         {
-            var arg = JsonConvert.DeserializeObject<PingArg>(argRaw);
-
-            return new PingArg { Message = arg.Message + "/PONG" };
+            return new PingArg { Message = "/PONG" };
         }
     }
 }

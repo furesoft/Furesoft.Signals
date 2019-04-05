@@ -16,7 +16,7 @@ namespace TestSender
             var channel = Signal.CreateRecieverChannel("signals.test");
 
             Signal.CallEvent(channel, new PingArg { Message = "hello world" });
-            var res = Signal.CallMethod(channel, 0xC0FFEE, new PingArg { Message = "hello from requestor" });
+            var res = Signal.CallMethod<PingArg>(channel, 0xC0FFEE, new PingArg { Message = "ping" });
 
             shared = Signal.CreateSharedObject<int>(0xFF00DE);
             shared += (_) => Console.WriteLine(_);
