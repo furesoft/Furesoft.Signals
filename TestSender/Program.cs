@@ -21,7 +21,7 @@ namespace TestSender
 
             shared = Signal.CreateSharedObject<int>(0xFF00DE);
             shared += (_) => Console.WriteLine(_);
-
+            
             shared_arr = Signal.CreateSharedObject<int[]>(0xFF00DF);
             shared_arr += (_) => Console.WriteLine(_);
 
@@ -29,9 +29,6 @@ namespace TestSender
 
             Console.ReadLine();
         }
-
-        
     }
-
-    
+ 
 }
