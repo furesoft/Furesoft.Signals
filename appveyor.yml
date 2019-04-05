@@ -7,8 +7,6 @@ init:
   # Good practise, because Windows line endings are different from Unix/Linux ones
   - cmd: git config --global core.autocrlf true
 before_build:
-  # Display .NET Core version
-  - cmd: dotnet --version
   # Display minimal restore text
   - cmd: dotnet restore Furesoft.Signals/Furesoft.Signals.csproj --verbosity m
   - cmd: dotnet restore TestClient/TestClient.csproj --verbosity m
@@ -24,7 +22,7 @@ clone_depth: 1
 
 artifacts:
   - path: '**\*.nupkg' # find all NuGet packages recursively
-  - path: '**\*.dll' 
+  - path: '**\*.Furesoft.Signals.dll' 
 deploy:
   provider: NuGet
   api_key:
