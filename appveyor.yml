@@ -11,6 +11,7 @@ before_build:
   - cmd: dotnet --version
   # Display minimal restore text
   - cmd: dotnet restore Furesoft.Signals/Furesoft.Signals.csproj --verbosity m
+  - cmd: dotnet restore TestClient/TestClient.csproj --verbosity m
   
 build:
   verbosity: minimal
