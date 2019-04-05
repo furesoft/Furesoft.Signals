@@ -50,6 +50,11 @@ namespace Furesoft.Signals
             return channel;
         }
 
+        public static IpcChannel CreateSenderChannel(int name)
+        {
+            return CreateSenderChannel(name.ToString());
+        }
+
         public static IpcChannel CreateRecieverChannel(string name)
         {
             var channel = new IpcChannel();
@@ -68,6 +73,11 @@ namespace Furesoft.Signals
             channel.event_communicator.StartReader();
 
             return channel;
+        }
+
+        public static IpcChannel CreateRecieverChannel(int name)
+        {
+            return CreateRecieverChannel(name.ToString());
         }
 
         private static void Pipeline_DataReceived(object sender, DataReceivedEventArgs e)
