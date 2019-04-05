@@ -1,5 +1,6 @@
 using Furesoft.Signals.Attributes;
 using Furesoft.Signals.Core;
+using Furesoft.Signals.Messages;
 using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
@@ -166,6 +167,16 @@ namespace Furesoft.Signals
             return ret;
         }
 
+        public static Signature GetSignatureOf(IpcChannel channel, int id)
+        {
+            return CallMethod<Signature>(channel, (int)MethodConstants.GetSignature, id);
+        }
+
+        internal enum MethodConstants : int
+        {
+            GetSignature = 316497852
+        }
+
         public static void Recieve<T>(Action<T> callback)
         {
             recieveQueue.Enqueue(
@@ -229,6 +240,8 @@ namespace Furesoft.Signals
                                 channel.shared_functions.Add(mattr.ID, m);
                                 channel.communicator.DataReceived += (s, e) =>
                                  {
+                                     e.Data = BeforeRecievePipe + e.Data;
+
                                      var obj = JsonConvert.DeserializeObject<FunctionCallRequest>(Encoding.ASCII.GetString(e.Data));
 
                                      Optional<string> error = false;
