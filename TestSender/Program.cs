@@ -13,10 +13,10 @@ namespace TestSender
         {
             var channel = Signal.CreateRecieverChannel("signals.test2");
 
-            Signal.CallEvent(channel, new PingArg { Message = "hello world" });
-
             var pw = Signal.CallMethod<string>(channel, 0xBEEF, 5);
             var pwd = channel.ToFunc<int, string>(0xBEEF)(5);
+
+            Signal.CallEvent(channel, new PingArg { Message = "hello world" });
 
             var sig = Signal.GetSignatureOf(channel, 0xBEEF);
             var res = Signal.CallMethod<PingArg>(channel, 0xC0FFEE, new PingArg { Message = "ping" }, true, "");

@@ -15,6 +15,8 @@ namespace Furesoft.Signals
     {
         private static Queue<RecieveRequest> recieveQueue = new Queue<RecieveRequest>();
 
+        public static ISerializer Serializer = new Serializers.JsonSerializer();
+
         public static void Subscribe<EventType>(IpcChannel channel, Action<EventType> callback)
         {
             channel.event_communicator.DataReceived += (s, e) =>
@@ -23,7 +25,7 @@ namespace Furesoft.Signals
 
                 if (objid == new Guid(e.Data.Take(16).ToArray()))
                 {
-                    var obj = JsonConvert.DeserializeObject<EventType>(Encoding.ASCII.GetString(e.Data.Skip(16).ToArray()));
+                    var obj = Serializer.Deserialize<EventType>(e.Data.Skip(16).ToArray());
 
                     callback(obj);
                 }
@@ -97,7 +99,7 @@ namespace Furesoft.Signals
             if (recieveQueue.Count > 0)
             {
                 var request = recieveQueue.Dequeue();
-                var obj = JsonConvert.DeserializeObject(Encoding.ASCII.GetString(e.Data), request.Type);
+                var obj = Serializer.Deserialize(e.Data, request.Type);
 
                 request.Callback(obj);
             }
@@ -112,7 +114,7 @@ namespace Furesoft.Signals
 
             channel.communicator.DataReceived += (s, e) =>
               {
-                  var resp = JsonConvert.DeserializeObject<FunctionCallResponse>(Encoding.ASCII.GetString(e.Data));
+                  var resp = Serializer.Deserialize<FunctionCallResponse>(e.Data);
 
                   if (resp.ID == id)
                   {
@@ -120,7 +122,7 @@ namespace Furesoft.Signals
                       {
                           if (resp.ReturnValue != null)
                           {
-                              ret = JsonConvert.DeserializeObject<T>(resp.ReturnValue);
+                              ret = Serializer.Deserialize<T>(resp.ReturnValue);
                           }
                       }
                       else
@@ -135,10 +137,10 @@ namespace Furesoft.Signals
             var m = new FunctionCallRequest
             {
                 ID = id,
-                ParameterJson = arg.Select(_ => JsonConvert.SerializeObject(_)).ToArray()
+                ParameterRaw = arg.Select(_ => Serializer.Serialize(_)).ToArray()
             };
 
-            var raw = Encoding.ASCII.GetBytes(JsonConvert.SerializeObject(m));
+            var raw = Serializer.Serialize(m);
 
             channel.communicator.Write(raw);
 
@@ -177,8 +179,7 @@ namespace Furesoft.Signals
 
         public static void Send(IpcChannel channel, IpcMessage msg)
         {
-            var json = JsonConvert.SerializeObject(msg);
-            var raw = Encoding.ASCII.GetBytes(json);
+            var raw = Serializer.Serialize(msg);
 
             channel.communicator.Write(raw);
         }
@@ -186,7 +187,7 @@ namespace Furesoft.Signals
         public static void CallEvent<EventType>(IpcChannel channel, EventType et)
         {
             var objid = typeof(EventType).GUID;
-            var serialized = JsonConvert.SerializeObject(et);
+            var serialized = Serializer.Serialize(et);
 
             var ms = new MemoryStream();
             var bw = new BinaryWriter(ms);
@@ -228,7 +229,7 @@ namespace Furesoft.Signals
                             channel.shared_functions.Add(mattr.ID, m);
                             channel.communicator.DataReceived += (s, e) =>
                              {
-                                 var obj = JsonConvert.DeserializeObject<FunctionCallRequest>(Encoding.ASCII.GetString(e.Data));
+                                 var obj = Serializer.Deserialize<FunctionCallRequest>(e.Data);
 
                                  Optional<string> error = false;
                                  object res = null;
@@ -237,18 +238,18 @@ namespace Furesoft.Signals
                                  var methodInfo = channel.shared_functions[obj.ID];
                                  var parameterInfo = methodInfo.GetParameters();
 
-                                 if (!IsArgumentMismatch(parameterInfo, obj.ParameterJson))
+                                 if (!IsArgumentMismatch(parameterInfo, obj.ParameterRaw))
                                  {
-                                     args = GetDeserializedParameters(parameterInfo, obj.ParameterJson);
+                                     args = GetDeserializedParameters(parameterInfo, obj.ParameterRaw);
                                  }
 
                                  var tm = (IFuncFilter)methodInfo.GetCustomAttributes(true).Where(x => x is IFuncFilter).FirstOrDefault();
                                  var filterAtt = tm ?? new DefaultFuncFilter();
-                                 var id = methodInfo.GetCustomAttribute<SharedFunctionAttribute>().ID;
+                                 var id = methodInfo.GetCustomAttribute<SharedFunctionAttribute>()?.ID;
 
                                  try
                                  {
-                                     FuncFilterResult beforecallresult = filterAtt.BeforeCall(methodInfo, id);
+                                     FuncFilterResult beforecallresult = filterAtt.BeforeCall(methodInfo, (id.HasValue ? id.Value : -1));
                                      if (beforecallresult)
                                      {
                                          if (methodInfo.IsStatic)
@@ -260,7 +261,7 @@ namespace Furesoft.Signals
                                              res = methodInfo.Invoke(channel, args);
                                          }
 
-                                         res = filterAtt.AfterCall(methodInfo, id, res);
+                                         res = filterAtt.AfterCall(methodInfo, (id.HasValue ? id.Value : -1), res);
                                      }
                                      else
                                      {
@@ -282,14 +283,14 @@ namespace Furesoft.Signals
 
                                  if (!error)
                                  {
-                                     resp.ReturnValue = JsonConvert.SerializeObject(res);
+                                     resp.ReturnValue = Serializer.Serialize(res);
                                  }
                                  else
                                  {
                                      resp.ErrorMessage = error;
                                  }
 
-                                 var raw = Encoding.ASCII.GetBytes(JsonConvert.SerializeObject(resp));
+                                 var raw = Serializer.Serialize(resp);
                                  channel.communicator.Write(raw);
                              };
                         }
@@ -298,17 +299,17 @@ namespace Furesoft.Signals
             }
         }
 
-        private static bool IsArgumentMismatch(ParameterInfo[] parameterInfo, string[] parameterJson)
+        private static bool IsArgumentMismatch(ParameterInfo[] parameterInfo, byte[][] parameterJson)
         {
             return parameterInfo.Length != parameterJson.Length;
         }
 
-        private static object[] GetDeserializedParameters(ParameterInfo[] parameterInfo, string[] parameterJson)
+        private static object[] GetDeserializedParameters(ParameterInfo[] parameterInfo, byte[][] parameterRaw)
         {
             var res = new List<object>();
-            for (int i = 0; i < parameterJson.Length; i++)
+            for (int i = 0; i < parameterRaw.Length; i++)
             {
-                res.Add(JsonConvert.DeserializeObject(parameterJson[i], parameterInfo[i].ParameterType));
+                res.Add(Serializer.Deserialize(parameterRaw[i], parameterInfo[i].ParameterType));
             }
             return res.ToArray();
         }

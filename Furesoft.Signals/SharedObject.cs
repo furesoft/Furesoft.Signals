@@ -23,7 +23,7 @@ namespace Furesoft.Signals
             obj.communicator.WritePosition = 0;
             obj.communicator.DataReceived += (s, e) =>
             {
-                var o = JsonConvert.DeserializeObject<T>(Encoding.ASCII.GetString(e.Data));
+                var o = Signal.Serializer.Deserialize<T>(e.Data);
 
                 obj._callbacks.ForEach(_ =>
                 {
@@ -46,7 +46,7 @@ namespace Furesoft.Signals
             obj.communicator.WritePosition = 2000;
             obj.communicator.DataReceived += (s, e) =>
             {
-                var o = JsonConvert.DeserializeObject<T>(Encoding.ASCII.GetString(e.Data));
+                var o = Signal.Serializer.Deserialize<T>(e.Data);
 
                 obj._callbacks.ForEach(_ =>
                 {
@@ -72,7 +72,7 @@ namespace Furesoft.Signals
 
         public void SetValue(T value)
         {
-            var raw = Encoding.ASCII.GetBytes(JsonConvert.SerializeObject(value));
+            var raw = Signal.Serializer.Serialize(value);
             communicator.Write(raw);
         }
 
