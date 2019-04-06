@@ -8,6 +8,7 @@ using System.Linq;
 using System.Reflection;
 using System.Text;
 using System.Threading;
+using System.Threading.Tasks;
 
 namespace Furesoft.Signals
 {
@@ -152,6 +153,12 @@ namespace Furesoft.Signals
             }
 
             return ret;
+        }
+
+        [System.Diagnostics.DebuggerStepThrough]
+        public static Task<T> CallMethodAsync<T>(IpcChannel channel, int id, params object[] args)
+        {
+            return Task.Run(() => CallMethod<T>(channel, id, args));
         }
 
         [System.Diagnostics.DebuggerStepThrough]
