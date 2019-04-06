@@ -221,6 +221,11 @@ namespace Furesoft.Signals
 
                             if (mattr != null)
                             {
+                                if (m.GetCustomAttribute<NotTrackAttribute>() != null)
+                                {
+                                    channel.notTrackedfuncs.Add(mattr.ID);
+                                }
+
                                 channel.shared_functions.Add(mattr.ID, m);
                                 channel.communicator.DataReceived += (s, e) =>
                                  {

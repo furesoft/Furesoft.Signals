@@ -13,6 +13,7 @@ namespace Furesoft.Signals
         internal MemoryMappedFileCommunicator func_communicator;
 
         internal Dictionary<int, MethodInfo> shared_functions = new Dictionary<int, MethodInfo>();
+        internal List<int> notTrackedfuncs = new List<int>();
 
         public IpcChannel()
         {
@@ -27,6 +28,8 @@ namespace Furesoft.Signals
 
         private Signature GetSignature(int id)
         {
+            if (notTrackedfuncs.Contains(id)) return Signature.Empty;
+
             if (shared_functions.ContainsKey(id))
             {
                 var sig = new Signature();

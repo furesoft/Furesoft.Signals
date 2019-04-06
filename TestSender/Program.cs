@@ -17,7 +17,7 @@ namespace TestSender
 
             var pw = Signal.CallMethod<string>(channel, 0xBEEF, 5);
 
-            var sig = Signal.GetSignatureOf(channel, 0xC0FFEE);
+            var sig = Signal.GetSignatureOf(channel, 0xBEEF);
             var res = Signal.CallMethod<PingArg>(channel, 0xC0FFEE, new PingArg { Message = "ping" }, true, "");
 
             shared = Signal.CreateSharedObject<int>(0xFF00DE);
