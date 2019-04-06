@@ -244,7 +244,7 @@ namespace Furesoft.Signals
 
                                  var tm = (IFuncFilter)methodInfo.GetCustomAttributes(true).Where(x => x is IFuncFilter).FirstOrDefault();
                                  var filterAtt = tm ?? new DefaultFuncFilter();
-                                 var id = m.GetCustomAttribute<SharedFunctionAttribute>().ID;
+                                 var id = methodInfo.GetCustomAttribute<SharedFunctionAttribute>().ID;
 
                                  try
                                  {
