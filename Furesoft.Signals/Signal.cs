@@ -114,7 +114,7 @@ namespace Furesoft.Signals
               {
                   var resp = JsonConvert.DeserializeObject<FunctionCallResponse>(Encoding.ASCII.GetString(e.Data));
 
-                  if (true)//resp.ID == id)
+                  if (resp.ID == id)
                   {
                       if (string.IsNullOrEmpty(resp.ErrorMessage))
                       {
