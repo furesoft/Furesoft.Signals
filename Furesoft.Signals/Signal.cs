@@ -1,5 +1,6 @@
 using Furesoft.Signals.Attributes;
 using Furesoft.Signals.Core;
+using Furesoft.Signals.Messages;
 using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
