@@ -1,4 +1,4 @@
-﻿namespace Furesoft.Signals
+﻿namespace Furesoft.Signals.Messages
 {
     internal class FunctionCallRequest
     {
