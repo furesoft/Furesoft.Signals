@@ -214,36 +214,42 @@ namespace Furesoft.Signals
 
                 if (attr != null)
                 {
+                    foreach (var m in t.GetMethods())
                     {
-                        foreach (var m in t.GetMethods())
+                        var mattr = m.GetCustomAttribute<SharedFunctionAttribute>();
+
+                        if (mattr != null)
                         {
-                            var mattr = m.GetCustomAttribute<SharedFunctionAttribute>();
-
-                            if (mattr != null)
+                            if (m.GetCustomAttribute<NotTrackAttribute>() != null)
                             {
-                                if (m.GetCustomAttribute<NotTrackAttribute>() != null)
-                                {
-                                    channel.notTrackedfuncs.Add(mattr.ID);
-                                }
+                                channel.notTrackedfuncs.Add(mattr.ID);
+                            }
 
-                                channel.shared_functions.Add(mattr.ID, m);
-                                channel.communicator.DataReceived += (s, e) =>
+                            channel.shared_functions.Add(mattr.ID, m);
+                            channel.communicator.DataReceived += (s, e) =>
+                             {
+                                 var obj = JsonConvert.DeserializeObject<FunctionCallRequest>(Encoding.ASCII.GetString(e.Data));
+
+                                 Optional<string> error = false;
+                                 object res = null;
+                                 object[] args = null;
+
+                                 var methodInfo = channel.shared_functions[obj.ID];
+                                 var parameterInfo = methodInfo.GetParameters();
+
+                                 if (!IsArgumentMismatch(parameterInfo, obj.ParameterJson))
                                  {
-                                     var obj = JsonConvert.DeserializeObject<FunctionCallRequest>(Encoding.ASCII.GetString(e.Data));
+                                     args = GetDeserializedParameters(parameterInfo, obj.ParameterJson);
+                                 }
 
-                                     Optional<string> error = false;
-                                     object res = null;
-                                     object[] args = null;
+                                 var tm = (IFuncFilter)methodInfo.GetCustomAttributes(true).Where(x => x is IFuncFilter).FirstOrDefault();
+                                 var filterAtt = tm ?? new DefaultFuncFilter();
+                                 var id = m.GetCustomAttribute<SharedFunctionAttribute>().ID;
 
-                                     var methodInfo = channel.shared_functions[obj.ID];
-                                     var parameterInfo = methodInfo.GetParameters();
-
-                                     if (!IsArgumentMismatch(parameterInfo, obj.ParameterJson))
-                                     {
-                                         args = GetDeserializedParameters(parameterInfo, obj.ParameterJson);
-                                     }
-
-                                     try
+                                 try
+                                 {
+                                     FuncFilterResult beforecallresult = filterAtt.BeforeCall(methodInfo, id);
+                                     if (beforecallresult)
                                      {
                                          if (methodInfo.IsStatic)
                                          {
@@ -253,30 +259,39 @@ namespace Furesoft.Signals
                                          {
                                              res = methodInfo.Invoke(channel, args);
                                          }
-                                     }
-                                     catch (Exception ex)
-                                     {
-                                         error = ex.Message.ToOptional();
-                                     }
 
-                                     var resp = new FunctionCallResponse
-                                     {
-                                         ID = obj.ID
-                                     };
-
-                                     if (!error)
-                                     {
-                                         resp.ReturnValue = JsonConvert.SerializeObject(res);
+                                         res = filterAtt.AfterCall(methodInfo, id, res);
                                      }
                                      else
                                      {
-                                         resp.ErrorMessage = error;
+                                         if (beforecallresult.ErrorMessage)
+                                         {
+                                             error = beforecallresult.ErrorMessage;
+                                         }
                                      }
+                                 }
+                                 catch (Exception ex)
+                                 {
+                                     error = ex.Message.ToOptional();
+                                 }
 
-                                     var raw = Encoding.ASCII.GetBytes(JsonConvert.SerializeObject(resp));
-                                     channel.communicator.Write(raw);
+                                 var resp = new FunctionCallResponse
+                                 {
+                                     ID = obj.ID
                                  };
-                            }
+
+                                 if (!error)
+                                 {
+                                     resp.ReturnValue = JsonConvert.SerializeObject(res);
+                                 }
+                                 else
+                                 {
+                                     resp.ErrorMessage = error;
+                                 }
+
+                                 var raw = Encoding.ASCII.GetBytes(JsonConvert.SerializeObject(resp));
+                                 channel.communicator.Write(raw);
+                             };
                         }
                     }
                 }

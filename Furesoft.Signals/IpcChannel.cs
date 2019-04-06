@@ -6,7 +6,7 @@ using System.Reflection;
 
 namespace Furesoft.Signals
 {
-    public class IpcChannel
+    public class IpcChannel : IDisposable
     {
         internal MemoryMappedFileCommunicator communicator;
         internal MemoryMappedFileCommunicator event_communicator;
@@ -86,6 +86,13 @@ namespace Furesoft.Signals
            {
                Signal.CallEvent(this, msg);
            });
+        }
+
+        public void Dispose()
+        {
+            communicator.Dispose();
+            event_communicator.Dispose();
+            func_communicator.Dispose();
         }
     }
 }

@@ -11,7 +11,7 @@ namespace TestSender
 
         private static void Main(string[] args)
         {
-            var channel = Signal.CreateRecieverChannel("signals.test");
+            var channel = Signal.CreateRecieverChannel("signals.test2");
 
             Signal.CallEvent(channel, new PingArg { Message = "hello world" });
 
@@ -28,6 +28,7 @@ namespace TestSender
 
             shared_arr += new int[] { 42, 5, 3, 6 };
 
+            channel.Dispose();
             Console.ReadLine();
         }
     }

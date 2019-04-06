@@ -2,6 +2,7 @@
 using Furesoft.Signals.Attributes;
 using System;
 using System.ComponentModel;
+using System.Reflection;
 using System.Text;
 using TestModels;
 
@@ -15,7 +16,7 @@ namespace TestClient
 
         private static void Main(string[] args)
         {
-            var channel = Signal.CreateSenderChannel("signals.test");
+            var channel = Signal.CreateSenderChannel("signals.test2");
 
             Signal.Subscribe<PingArg>(channel, _ =>
             {
@@ -38,6 +39,7 @@ namespace TestClient
                 shared += arg;
             }
 
+            channel.Dispose();
             Console.ReadLine();
         }
 
@@ -52,6 +54,7 @@ namespace TestClient
 
         [SharedFunction(0xBEEF)]
         [NotTrack]
+        [RequireAuth(0x255363)]
         public static string GetPass(int length)
         {
             string chars = "123456789abcdefghijklmopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ@/\\";
@@ -65,6 +68,28 @@ namespace TestClient
             }
 
             return res.ToString();
+        }
+    }
+
+    public class RequireAuthAttribute : Attribute, IFuncFilter
+    {
+        public RequireAuthAttribute(int right)
+        {
+            Right = right;
+        }
+
+        public int Right { get; }
+
+        public object AfterCall(MethodInfo mi, int id, object returnValue)
+        {
+            return returnValue;
+        }
+
+        public FuncFilterResult BeforeCall(MethodInfo mi, int id)
+        {
+            if (Right != 0x255362) return $"You dont habe enough rights to execute the function '0x{id.ToString("x").ToUpper()}";
+
+            return Right == 0x255362;
         }
     }
 }
