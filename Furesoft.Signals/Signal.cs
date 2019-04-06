@@ -1,6 +1,5 @@
 using Furesoft.Signals.Attributes;
 using Furesoft.Signals.Core;
-using Furesoft.Signals.Messages;
 using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
@@ -16,18 +15,10 @@ namespace Furesoft.Signals
     {
         private static Queue<RecieveRequest> recieveQueue = new Queue<RecieveRequest>();
 
-        public static Pipeline<IpcMessage> BeforeSignal = new Pipeline<IpcMessage>();
-        public static Pipeline<object> AfterSignal = new Pipeline<object>();
-
-        public static Pipeline<byte[]> BeforeSendPipe = new Pipeline<byte[]>();
-        public static Pipeline<byte[]> BeforeRecievePipe = new Pipeline<byte[]>();
-
         public static void Subscribe<EventType>(IpcChannel channel, Action<EventType> callback)
         {
             channel.event_communicator.DataReceived += (s, e) =>
             {
-                e.Data = BeforeRecievePipe.Invoke(e.Data);
-
                 var objid = typeof(EventType).GUID;
 
                 if (objid == new Guid(e.Data.Take(16).ToArray()))
@@ -103,14 +94,10 @@ namespace Furesoft.Signals
 
         private static void Communicator_DataReceived(object sender, DataReceivedEventArgs e)
         {
-            e.Data = BeforeRecievePipe.Invoke(e.Data);
-
             if (recieveQueue.Count > 0)
             {
                 var request = recieveQueue.Dequeue();
                 var obj = JsonConvert.DeserializeObject(Encoding.ASCII.GetString(e.Data), request.Type);
-
-                obj = AfterSignal.Invoke(obj);
 
                 request.Callback(obj);
             }
@@ -125,11 +112,9 @@ namespace Furesoft.Signals
 
             channel.communicator.DataReceived += (s, e) =>
               {
-                  e.Data = BeforeRecievePipe.Invoke(e.Data);
-
                   var resp = JsonConvert.DeserializeObject<FunctionCallResponse>(Encoding.ASCII.GetString(e.Data));
 
-                  if (resp.ID == id)
+                  if (true)//resp.ID == id)
                   {
                       if (string.IsNullOrEmpty(resp.ErrorMessage))
                       {
@@ -153,7 +138,7 @@ namespace Furesoft.Signals
                 ParameterJson = arg.Select(_ => JsonConvert.SerializeObject(_)).ToArray()
             };
 
-            var raw = BeforeSendPipe + Encoding.ASCII.GetBytes(JsonConvert.SerializeObject(m));
+            var raw = Encoding.ASCII.GetBytes(JsonConvert.SerializeObject(m));
 
             channel.communicator.Write(raw);
 
@@ -167,6 +152,7 @@ namespace Furesoft.Signals
             return ret;
         }
 
+        [System.Diagnostics.DebuggerStepThrough]
         public static Signature GetSignatureOf(IpcChannel channel, int id)
         {
             return CallMethod<Signature>(channel, (int)MethodConstants.GetSignature, id);
@@ -191,10 +177,8 @@ namespace Furesoft.Signals
 
         public static void Send(IpcChannel channel, IpcMessage msg)
         {
-            msg = BeforeSignal.Invoke(msg);
-
             var json = JsonConvert.SerializeObject(msg);
-            var raw = BeforeSendPipe + Encoding.ASCII.GetBytes(json);
+            var raw = Encoding.ASCII.GetBytes(json);
 
             channel.communicator.Write(raw);
         }
@@ -210,7 +194,7 @@ namespace Furesoft.Signals
             bw.Write(objid.ToByteArray());
             bw.Write(serialized);
 
-            var raw = BeforeSendPipe + ms.ToArray();
+            var raw = ms.ToArray();
 
             channel.event_communicator.Write(raw);
         }
@@ -240,15 +224,14 @@ namespace Furesoft.Signals
                                 channel.shared_functions.Add(mattr.ID, m);
                                 channel.communicator.DataReceived += (s, e) =>
                                  {
-                                     e.Data = BeforeRecievePipe + e.Data;
-
                                      var obj = JsonConvert.DeserializeObject<FunctionCallRequest>(Encoding.ASCII.GetString(e.Data));
 
                                      Optional<string> error = false;
                                      object res = null;
                                      object[] args = null;
 
-                                     var parameterInfo = channel.shared_functions[obj.ID].GetParameters();
+                                     var methodInfo = channel.shared_functions[obj.ID];
+                                     var parameterInfo = methodInfo.GetParameters();
 
                                      if (!IsArgumentMismatch(parameterInfo, obj.ParameterJson))
                                      {
@@ -257,7 +240,14 @@ namespace Furesoft.Signals
 
                                      try
                                      {
-                                         res = channel.shared_functions[obj.ID].Invoke(null, args);
+                                         if (methodInfo.IsStatic)
+                                         {
+                                             res = methodInfo.Invoke(null, args);
+                                         }
+                                         else
+                                         {
+                                             res = methodInfo.Invoke(channel, args);
+                                         }
                                      }
                                      catch (Exception ex)
                                      {
@@ -278,7 +268,7 @@ namespace Furesoft.Signals
                                          resp.ErrorMessage = error;
                                      }
 
-                                     var raw = BeforeSendPipe + Encoding.ASCII.GetBytes(JsonConvert.SerializeObject(resp));
+                                     var raw = Encoding.ASCII.GetBytes(JsonConvert.SerializeObject(resp));
                                      channel.communicator.Write(raw);
                                  };
                             }
