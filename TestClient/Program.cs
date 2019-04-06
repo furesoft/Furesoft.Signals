@@ -54,7 +54,7 @@ namespace TestClient
 
         [SharedFunction(0xBEEF)]
         [NotTrack]
-        [RequireAuth(0x255363)]
+        [RequireAuth(0x255362)]
         public static string GetPass(int length)
         {
             string chars = "123456789abcdefghijklmopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ@/\\";

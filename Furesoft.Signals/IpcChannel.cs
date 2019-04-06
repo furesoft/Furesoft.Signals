@@ -88,6 +88,30 @@ namespace Furesoft.Signals
            });
         }
 
+        public Func<TArg, TResult> ToFunc<TArg, TResult>(int id)
+        {
+            return new Func<TArg, TResult>(msg =>
+            {
+                return Signal.CallMethod<TResult>(this, id, msg);
+            });
+        }
+
+        public Func<TArg, TArg2, TResult> ToFunc<TArg, TArg2, TResult>(int id)
+        {
+            return new Func<TArg, TArg2, TResult>((a1, a2) =>
+             {
+                 return Signal.CallMethod<TResult>(this, id, a1, a2);
+             });
+        }
+
+        public Func<TArg, TArg2, TArg3, TResult> ToFunc<TArg, TArg2, TArg3, TResult>(int id)
+        {
+            return new Func<TArg, TArg2, TArg3, TResult>((a1, a2, a3) =>
+            {
+                return Signal.CallMethod<TResult>(this, id, a1, a2, a3);
+            });
+        }
+
         public void Dispose()
         {
             communicator.Dispose();
