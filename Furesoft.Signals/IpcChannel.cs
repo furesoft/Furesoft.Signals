@@ -22,20 +22,45 @@ namespace Furesoft.Signals
 
         private MethodInfo GetMethodInfo(string name)
         {
-            return GetType().GetMethod(name);
+            return GetType().GetMethod(name, BindingFlags.Instance | BindingFlags.NonPublic);
         }
 
         private Signature GetSignature(int id)
         {
-            var sig = new Signature();
+            if (shared_functions.ContainsKey(id))
+            {
+                var sig = new Signature();
+                var mi = shared_functions[id];
 
-            var mi = shared_functions?[id];
+                sig.ReturnType = mi.ReturnType.Name;
+                sig.ID = id;
+                sig.Description = (mi.GetCustomAttribute<DescriptionAttribute>() ?? new DescriptionAttribute()).Description;
+                sig.Parameters = BuildSigParameters(mi.GetParameters());
 
-            sig.ReturnType = mi.ReturnType.Name;
-            sig.Description = (mi.GetCustomAttribute<DescriptionAttribute>() ?? new DescriptionAttribute()).Description;
-            //sig.Parameters = BuildSigParameters(mi);
+                return sig;
+            }
 
-            return sig;
+            return Signature.Empty;
+        }
+
+        private SignatureParameter[] BuildSigParameters(ParameterInfo[] pi)
+        {
+            var res = new List<SignatureParameter>();
+
+            foreach (var p in pi)
+            {
+                var sip = new SignatureParameter
+                {
+                    Name = p.Name,
+                    Type = p.ParameterType.Name,
+                    IsOptional = p.IsOptional,
+                    Description = (p.GetCustomAttribute<DescriptionAttribute>() ?? new DescriptionAttribute()).Description
+                };
+
+                res.Add(sip);
+            }
+
+            return res.ToArray();
         }
 
         public static IpcChannel operator +(IpcChannel channel, Action<object> callback)
