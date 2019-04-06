@@ -2,6 +2,7 @@
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
+using System.Linq;
 using System.Reflection;
 
 namespace Furesoft.Signals
@@ -17,8 +18,15 @@ namespace Furesoft.Signals
 
         public IpcChannel()
         {
-            //ToDo: Fix
             shared_functions.Add((int)Signal.MethodConstants.GetSignature, GetMethodInfo(nameof(GetSignature)));
+            shared_functions.Add((int)Signal.MethodConstants.GetAllSignatures, GetMethodInfo(nameof(GetAllSignatures)));
+        }
+
+        private Signature[] GetAllSignatures()
+        {
+            var funcs = shared_functions.Where(_ => !notTrackedfuncs.Contains(_.Key));
+
+            return funcs.Select(_ => GetSignature(_.Key)).ToArray();
         }
 
         private MethodInfo GetMethodInfo(string name)

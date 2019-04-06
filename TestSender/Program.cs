@@ -1,5 +1,6 @@
 ﻿using Furesoft.Signals;
 using System;
+using System.Collections.Generic;
 using TestModels;
 
 namespace TestSender
@@ -18,7 +19,7 @@ namespace TestSender
 
             Signal.CallEvent(channel, new PingArg { Message = "hello world" });
 
-            var sig = Signal.GetSignatureOf(channel, 0xBEEF);
+            var sig = Signal.GetSignatureOf(channel, 0xBADA33);
             var res = Signal.CallMethod<PingArg>(channel, 0xC0FFEE, new PingArg { Message = "ping" }, true, "");
 
             shared = Signal.CreateSharedObject<int>(0xFF00DE);

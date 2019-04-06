@@ -169,7 +169,7 @@ namespace Furesoft.Signals
 
         internal enum MethodConstants : int
         {
-            GetSignature = 316497852
+            GetSignature = 316497852,
         }
 
         public static void Recieve<T>(Action<T> callback)
