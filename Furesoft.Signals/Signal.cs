@@ -166,7 +166,7 @@ namespace Furesoft.Signals
             return CallMethod<Signature>(channel, (int)MethodConstants.GetSignature, id);
         }
 
-        internal enum MethodConstants : int
+        internal enum MethodConstants
         {
             GetSignature = 316497852,
         }
