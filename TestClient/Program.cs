@@ -2,8 +2,6 @@
 using Furesoft.Signals.Attributes;
 using System;
 using System.ComponentModel;
-using System.Diagnostics;
-using System.IO;
 using System.Reflection;
 using System.Text;
 using TestModels;
@@ -29,12 +27,6 @@ namespace TestClient
             shared += (_) => Console.WriteLine(_);
             shared_arr = Signal.CreateSharedObject<int[]>(0xFF00DF, true);
             shared_arr += (_) => Console.WriteLine(string.Join(',', _));
-
-            var strm = Signal.OpenStream(channel);
-            var file = File.OpenWrite("test.jpg");
-            strm.CopyTo(file);
-
-            Process.Start("test.jpg");
 
             Signal.CollectAllShared(channel);
 

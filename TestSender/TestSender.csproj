@@ -10,10 +10,4 @@
     <ProjectReference Include="..\TestModels\TestModels.csproj" />
   </ItemGroup>
 
-  <ItemGroup>
-    <None Update="test.jpg">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </None>
-  </ItemGroup>
-
 </Project>

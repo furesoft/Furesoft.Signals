@@ -1,14 +1,11 @@
 using Furesoft.Signals.Attributes;
 using Furesoft.Signals.Core;
 using Furesoft.Signals.Messages;
-using Furesoft.Signals.Streaming;
-using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Reflection;
-using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -35,11 +32,6 @@ namespace Furesoft.Signals
             };
         }
 
-        public static IpcStream OpenStream(IpcChannel channel)
-        {
-            return new IpcStream(channel);
-        }
-
         public static IpcChannel CreateSenderChannel(string name)
         {
             var channel = new IpcChannel();
@@ -60,10 +52,6 @@ namespace Furesoft.Signals
             channel.func_communicator.ReadPosition = 2000;
             channel.func_communicator.WritePosition = 0;
             channel.func_communicator.StartReader();
-
-            channel.stream_communicator = new MemoryMappedFileCommunicator(name + ".funcs", 4096 * 4);
-            channel.stream_communicator.ReadPosition = 2500;
-            channel.stream_communicator.WritePosition = 0;
 
             return channel;
         }
@@ -95,11 +83,6 @@ namespace Furesoft.Signals
             channel.func_communicator.WritePosition = 2000;
             channel.func_communicator.ReadPosition = 0;
             channel.func_communicator.StartReader();
-
-            //initialite stream communicator
-            channel.stream_communicator = new MemoryMappedFileCommunicator(name + ".funcs", 4096 * 4);
-            channel.stream_communicator.WritePosition = 2500;
-            channel.stream_communicator.ReadPosition = 0;
 
             return channel;
         }
