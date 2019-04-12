@@ -1,6 +1,7 @@
 ﻿using Furesoft.Signals;
 using System;
 using System.Collections.Generic;
+using System.IO;
 using TestModels;
 
 namespace TestSender
@@ -29,6 +30,11 @@ namespace TestSender
             shared_arr += (_) => Console.WriteLine(_);
 
             shared_arr += new int[] { 42, 5, 3, 6 };
+
+            var strm = Signal.OpenStream(channel);
+            var file = File.OpenRead("test.jpg");
+
+            file.CopyTo(strm);
 
             channel.Dispose();
             Console.ReadLine();
