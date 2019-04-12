@@ -186,7 +186,7 @@ namespace Furesoft.Signals.Core
             OnDataReceived(state as DataReceivedEventArgs);
         }
 
-        protected virtual void OnDataReceived(DataReceivedEventArgs e)
+        internal virtual void OnDataReceived(DataReceivedEventArgs e)
         {
             if (e != null && DataReceived != null)
                 DataReceived(this, e);
