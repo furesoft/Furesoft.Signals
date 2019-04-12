@@ -1,8 +1,6 @@
 ﻿using Furesoft.Signals.Core;
-using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
-using System.Text;
 
 namespace Furesoft.Signals
 {
