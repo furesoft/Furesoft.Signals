@@ -3,7 +3,7 @@
 namespace Furesoft.Signals.Attributes
 {
     [AttributeUsage(AttributeTargets.Method, Inherited = true)]
-    public class NotTrackAttribute : Attribute
+    public class NoSignatureAttribute : Attribute
     {
     }
 }

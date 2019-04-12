@@ -227,7 +227,7 @@ namespace Furesoft.Signals
 
                         if (mattr != null)
                         {
-                            if (m.GetCustomAttribute<NotTrackAttribute>() != null)
+                            if (m.GetCustomAttribute<NoSignatureAttribute>() != null)
                             {
                                 channel.notTrackedfuncs.Add(mattr.ID);
                             }

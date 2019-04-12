@@ -53,7 +53,7 @@ namespace TestClient
         }
 
         [SharedFunction(0xBEEF)]
-        [NotTrack]
+        [NoSignature]
         [RequireAuth(0x255362)]
         public static string GetPass(int length)
         {
