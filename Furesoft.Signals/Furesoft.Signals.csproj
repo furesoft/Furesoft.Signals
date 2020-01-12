@@ -8,6 +8,8 @@
     <PackageProjectUrl>https://github.com/furesoft/Furesoft.Signals</PackageProjectUrl>
     <Copyright>Furesoft</Copyright>
     <Description>Simple IPC throug Signals with event support with mmf backend</Description>
+    <AssemblyVersion>1.0.0.7</AssemblyVersion>
+    <FileVersion>1.0.0.7</FileVersion>
   </PropertyGroup>
 
   <ItemGroup>
