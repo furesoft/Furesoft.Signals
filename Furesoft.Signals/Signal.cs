@@ -31,7 +31,6 @@ namespace Furesoft.Signals
             channel.event_communicator.Write(raw);
         }
 
-        [System.Diagnostics.DebuggerStepThrough]
         public static T CallMethod<T>(IpcChannel channel, int id, params object[] arg)
         {
             mre.Reset();
@@ -80,7 +79,6 @@ namespace Furesoft.Signals
             return ret;
         }
 
-        [System.Diagnostics.DebuggerStepThrough]
         public static Task<T> CallMethodAsync<T>(IpcChannel channel, int id, params object[] args)
         {
             return Task.Run(() => CallMethod<T>(channel, id, args));
@@ -112,7 +110,8 @@ namespace Furesoft.Signals
                                 channel.notTrackedfuncs.Add(mattr.ID);
                             }
 
-                            if (!channel.shared_functions.ContainsKey(mattr.ID) {
+                            if (!channel.shared_functions.ContainsKey(mattr.ID))
+                            {
                                 channel.shared_functions.Add(mattr.ID, m);
                             }
 
@@ -211,6 +210,12 @@ namespace Furesoft.Signals
             channel.func_communicator.ReadPosition = 0;
             channel.func_communicator.StartReader();
 
+            //initialize stream communicator
+            channel.stream_communicator = new MemoryMappedFileCommunicator(name + ".chunks", 4096);
+            channel.stream_communicator.WritePosition = 2000;
+            channel.stream_communicator.ReadPosition = 0;
+            channel.stream_communicator.StartReader();
+
             return channel;
         }
 
@@ -240,6 +245,11 @@ namespace Furesoft.Signals
             channel.func_communicator.WritePosition = 0;
             channel.func_communicator.StartReader();
 
+            channel.stream_communicator = new MemoryMappedFileCommunicator(name + ".chunks", 4096);
+            channel.stream_communicator.ReadPosition = 2000;
+            channel.stream_communicator.WritePosition = 0;
+            channel.stream_communicator.StartReader();
+
             return channel;
         }
 
@@ -258,7 +268,13 @@ namespace Furesoft.Signals
             return SharedObject<T>.CreateReciever(id);
         }
 
-        [System.Diagnostics.DebuggerStepThrough]
+        public static Stream CreateSharedStream(IpcChannel channel)
+        {
+            var sStrm = new SharedStream(channel);
+
+            return sStrm;
+        }
+
         public static Signature GetSignatureOf(IpcChannel channel, int id)
         {
             return CallMethod<Signature>(channel, (int)MethodConstants.GetSignature, id);

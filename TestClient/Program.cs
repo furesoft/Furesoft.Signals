@@ -8,15 +8,73 @@ using TestModels;
 
 namespace TestClient
 {
+    public class RequireAuthAttribute : Attribute, IFuncFilter
+    {
+        public int Right { get; }
+
+        public RequireAuthAttribute(int right)
+        {
+            Right = right;
+        }
+
+        public object AfterCall(MethodInfo mi, int id, object returnValue)
+        {
+            return returnValue;
+        }
+
+        public FuncFilterResult BeforeCall(MethodInfo mi, int id)
+        {
+            if (Right != 0x255362) return $"You dont habe enough rights to execute the function '0x{id.ToString("x").ToUpper()}";
+
+            return Right == 0x255362;
+        }
+    }
+
     [Shared]
     internal class Program
     {
+        [SharedFunction(0xBEEF)]
+        [NoSignature]
+        [RequireAuth(0x255362)]
+        public static string GetPass(int length)
+        {
+            string chars = "123456789abcdefghijklmopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ@/\\";
+            var rndm = new Random();
+
+            var res = new StringBuilder();
+
+            for (int i = 0; i < length; i++)
+            {
+                res.Append(chars[rndm.Next(0, chars.Length - 1)]);
+            }
+
+            return res.ToString();
+        }
+
+        [SharedFunction(0xC0FFEE)]
+        [Description("Handshake Method")]
+        public static PingArg Pong(PingArg arg, bool active, object notnull)
+        {
+            if (notnull == null) throw new ArgumentException(nameof(notnull));
+
+            return new PingArg { Message = "/PONG" };
+        }
+
         private static SharedObject<int> shared;
         private static SharedObject<int[]> shared_arr;
 
         private static void Main(string[] args)
         {
             var channel = Signal.CreateSenderChannel("signals.test2");
+
+            var strm = Signal.CreateSharedStream(channel);
+            for (int i = 1; i <= 25; i++)
+            {
+                byte[] buffer = new byte[4];
+                strm.Read(buffer, 0, buffer.Length);
+
+                Console.WriteLine(BitConverter.ToInt32(buffer));
+            }
 
             Signal.Subscribe<PingArg>(channel, _ =>
             {
@@ -41,55 +99,6 @@ namespace TestClient
 
             channel.Dispose();
             Console.ReadLine();
-        }
-
-        [SharedFunction(0xC0FFEE)]
-        [Description("Handshake Method")]
-        public static PingArg Pong(PingArg arg, bool active, object notnull)
-        {
-            if (notnull == null) throw new ArgumentException(nameof(notnull));
-
-            return new PingArg { Message = "/PONG" };
-        }
-
-        [SharedFunction(0xBEEF)]
-        [NoSignature]
-        [RequireAuth(0x255362)]
-        public static string GetPass(int length)
-        {
-            string chars = "123456789abcdefghijklmopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ@/\\";
-            var rndm = new Random();
-
-            var res = new StringBuilder();
-
-            for (int i = 0; i < length; i++)
-            {
-                res.Append(chars[rndm.Next(0, chars.Length - 1)]);
-            }
-
-            return res.ToString();
-        }
-    }
-
-    public class RequireAuthAttribute : Attribute, IFuncFilter
-    {
-        public RequireAuthAttribute(int right)
-        {
-            Right = right;
-        }
-
-        public int Right { get; }
-
-        public object AfterCall(MethodInfo mi, int id, object returnValue)
-        {
-            return returnValue;
-        }
-
-        public FuncFilterResult BeforeCall(MethodInfo mi, int id)
-        {
-            if (Right != 0x255362) return $"You dont habe enough rights to execute the function '0x{id.ToString("x").ToUpper()}";
-
-            return Right == 0x255362;
         }
     }
 }
