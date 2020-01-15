@@ -30,13 +30,14 @@ namespace TestSender
             shared_arr += new int[] { 42, 5, 3, 6 };
 
             var strm = Signal.CreateSharedStream(channel);
+
             for (int i = 1; i <= 25; i++)
             {
-                byte[] buffer = BitConverter.GetBytes(i);
+                byte[] buffer = new byte[4];
+                strm.Read(buffer, 0, buffer.Length);
 
-                strm.Write(buffer, 0, buffer.Length);
+                Console.WriteLine(BitConverter.ToInt32(buffer));
             }
-
             channel.Dispose();
             Console.ReadLine();
         }

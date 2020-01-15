@@ -70,10 +70,9 @@ namespace TestClient
             var strm = Signal.CreateSharedStream(channel);
             for (int i = 1; i <= 25; i++)
             {
-                byte[] buffer = new byte[4];
-                strm.Read(buffer, 0, buffer.Length);
+                byte[] buffer = BitConverter.GetBytes(i);
 
-                Console.WriteLine(BitConverter.ToInt32(buffer));
+                strm.Write(buffer, 0, buffer.Length);
             }
 
             Signal.Subscribe<PingArg>(channel, _ =>

@@ -1,5 +1,8 @@
 ﻿using Furesoft.Signals.Messages;
+using System;
+using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Threading;
 
 namespace Furesoft.Signals
@@ -26,7 +29,11 @@ namespace Furesoft.Signals
         {
             mre.WaitOne();
 
-            buffer = lastChunk.Data;
+            if (_chunks.Any())
+            {
+                var data = _chunks.Pop().Data;
+                Array.Copy(data, 0, buffer, 0, data.Length);
+            }
 
             return 0;
         }
@@ -52,6 +59,7 @@ namespace Furesoft.Signals
         }
 
         private IpcChannel _channel;
+        private Stack<StreamChunk> _chunks = new Stack<StreamChunk>();
         private StreamChunk lastChunk;
         private int lastID = 0;
         private ManualResetEvent mre = new ManualResetEvent(false);
@@ -59,6 +67,7 @@ namespace Furesoft.Signals
         private void Stream_communicator_DataReceived(object sender, Core.DataReceivedEventArgs e)
         {
             lastChunk = StreamChunk.Deserialize(e.Data);
+            _chunks.Push(lastChunk);
             mre.Set();
         }
     }
