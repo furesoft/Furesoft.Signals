@@ -31,8 +31,9 @@ namespace Furesoft.Signals
 
             if (_chunks.Any())
             {
-                var data = _chunks.Pop().Data;
+                var data = _chunks.Dequeue().Data;
                 Array.Copy(data, 0, buffer, 0, data.Length);
+                mre.Reset();
             }
 
             return 0;
@@ -59,7 +60,7 @@ namespace Furesoft.Signals
         }
 
         private IpcChannel _channel;
-        private Stack<StreamChunk> _chunks = new Stack<StreamChunk>();
+        private Queue<StreamChunk> _chunks = new Queue<StreamChunk>();
         private StreamChunk lastChunk;
         private int lastID = 0;
         private ManualResetEvent mre = new ManualResetEvent(false);
@@ -67,7 +68,7 @@ namespace Furesoft.Signals
         private void Stream_communicator_DataReceived(object sender, Core.DataReceivedEventArgs e)
         {
             lastChunk = StreamChunk.Deserialize(e.Data);
-            _chunks.Push(lastChunk);
+            _chunks.Enqueue(lastChunk);
             mre.Set();
         }
     }
