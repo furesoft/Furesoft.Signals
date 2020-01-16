@@ -74,6 +74,7 @@ namespace TestClient
 
                 strm.Write(buffer, 0, buffer.Length);
             }
+            strm.Flush();
 
             Signal.Subscribe<PingArg>(channel, _ =>
             {
