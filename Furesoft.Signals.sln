@@ -1,7 +1,7 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio 15
-VisualStudioVersion = 15.0.28307.489
+# Visual Studio Version 16
+VisualStudioVersion = 16.0.29613.14
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Furesoft.Signals", "Furesoft.Signals\Furesoft.Signals.csproj", "{1870DF13-2B57-4842-9A47-0D922627BB3D}"
 EndProject
@@ -16,6 +16,7 @@ EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{601C9790-8717-4A3B-B551-7C6469476DC9}"
 	ProjectSection(SolutionItems) = preProject
 		appveyor.yml = appveyor.yml
+		ToDo.txt = ToDo.txt
 	EndProjectSection
 EndProject
 Global

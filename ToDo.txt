@@ -1,0 +1,1 @@
+rewrite sharedstream to only write data to mmf after flush, implemented by a streamchunk buffer
