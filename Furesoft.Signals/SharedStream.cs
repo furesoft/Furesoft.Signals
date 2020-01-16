@@ -42,7 +42,7 @@ namespace Furesoft.Signals
         {
             mre.WaitOne();
 
-            if (_readBuffer.Any())
+            if (_readBuffer.Count > 0)
             {
                 var data = _readBuffer.Dequeue().Data;
                 Array.Copy(data, 0, buffer, 0, data.Length);

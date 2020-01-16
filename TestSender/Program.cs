@@ -38,6 +38,7 @@ namespace TestSender
 
                 Console.WriteLine(BitConverter.ToInt32(buffer));
             }
+
             channel.Dispose();
             Console.ReadLine();
         }
