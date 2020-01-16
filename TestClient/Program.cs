@@ -65,7 +65,7 @@ namespace TestClient
 
         private static void Main(string[] args)
         {
-            var channel = Signal.CreateSenderChannel("signals.test2");
+            var channel = Signal.CreateSenderChannel("signals.test5");
 
             var strm = Signal.CreateSharedStream(channel);
             for (int i = 1; i <= 25; i++)

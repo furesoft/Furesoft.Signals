@@ -11,7 +11,7 @@ namespace TestSender
 
         private static void Main(string[] args)
         {
-            var channel = Signal.CreateRecieverChannel("signals.test2");
+            var channel = Signal.CreateRecieverChannel("signals.test5");
 
             var pw = Signal.CallMethod<string>(channel, 0xBEEF, 5);
             var pwd = channel.ToFunc<int, string>(0xBEEF)(5);
