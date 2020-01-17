@@ -1,8 +1,8 @@
 ﻿using Furesoft.Signals.Messages;
+using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
 using System.IO;
-using System.Linq;
 using System.Threading;
 
 namespace Furesoft.Signals
@@ -15,7 +15,7 @@ namespace Furesoft.Signals
 
         public override bool CanWrite => true;
 
-        public override long Length => lastChunk.Length;
+        public override long Length => 0;
 
         public override long Position { get; set; }
 
@@ -34,7 +34,8 @@ namespace Furesoft.Signals
         {
             foreach (var chunk in _writeBuffer)
             {
-                _channel.stream_communicator.Write(chunk.Serialize());
+                var json = JsonConvert.SerializeObject(chunk);
+                _channel.stream_communicator.Write(json);
             }
         }
 
@@ -75,14 +76,13 @@ namespace Furesoft.Signals
         private IpcChannel _channel;
         private Queue<StreamChunk> _readBuffer = new Queue<StreamChunk>();
         private Queue<StreamChunk> _writeBuffer = new Queue<StreamChunk>();
-        private StreamChunk lastChunk;
+
         private int lastID = 0;
         private ManualResetEvent mre = new ManualResetEvent(false);
 
         private void Stream_communicator_DataReceived(object sender, Core.DataReceivedEventArgs e)
         {
-            lastChunk = StreamChunk.Deserialize(e.Data);
-            _readBuffer.Enqueue(lastChunk);
+            _readBuffer.Enqueue(JsonConvert.DeserializeObject<StreamChunk>(System.Text.Encoding.UTF8.GetString(e.Data)));
             mre.Set();
         }
     }
