@@ -31,9 +31,9 @@ namespace TestSender
 
             var strm = Signal.CreateSharedStream(channel);
 
-            for (int i = 1; i <= 25; i++)
+            for (int i = 1; i <= 2; i++)
             {
-                byte[] buffer = new byte[4];
+                byte[] buffer = new byte[25];
                 strm.Read(buffer, 0, buffer.Length);
 
                 Console.WriteLine(BitConverter.ToInt32(buffer));

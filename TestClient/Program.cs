@@ -68,9 +68,9 @@ namespace TestClient
             var channel = Signal.CreateSenderChannel("signals.test5");
 
             var strm = Signal.CreateSharedStream(channel);
-            for (int i = 1; i <= 25; i++)
+            for (int i = 1; i <= 2; i++)
             {
-                byte[] buffer = BitConverter.GetBytes(i);
+                byte[] buffer = Encoding.ASCII.GetBytes("Hello");
 
                 strm.Write(buffer, 0, buffer.Length);
             }
