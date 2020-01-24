@@ -187,7 +187,7 @@ namespace Furesoft.Signals
             }
         }
 
-        public static IpcChannel CreateRecieverChannel(string name)
+        public static IpcChannel CreateRecieverChannel(string name, Action<IpcChannel> configurator = null)
         {
             var channel = new IpcChannel();
 
@@ -216,6 +216,8 @@ namespace Furesoft.Signals
             channel.stream_communicator.ReadPosition = 0;
             channel.stream_communicator.StartReader();
 
+            if (configurator != null) configurator(channel);
+
             return channel;
         }
 
@@ -224,7 +226,7 @@ namespace Furesoft.Signals
             return CreateRecieverChannel(name.ToString());
         }
 
-        public static IpcChannel CreateSenderChannel(string name)
+        public static IpcChannel CreateSenderChannel(string name, Action<IpcChannel> configurator = null)
         {
             var channel = new IpcChannel();
 
@@ -249,6 +251,8 @@ namespace Furesoft.Signals
             channel.stream_communicator.ReadPosition = 2000;
             channel.stream_communicator.WritePosition = 0;
             channel.stream_communicator.StartReader();
+
+            if (configurator != null) configurator(channel);
 
             return channel;
         }
