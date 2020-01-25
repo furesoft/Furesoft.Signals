@@ -21,6 +21,11 @@ namespace Furesoft.Signals
             return channel;
         }
 
+        public void AddSharedFunction(int id, Delegate mi)
+        {
+            shared_functions.Add(id, mi.GetMethodInfo());
+        }
+
         public void Dispose()
         {
             communicator.Dispose();
