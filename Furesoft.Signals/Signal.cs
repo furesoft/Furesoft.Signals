@@ -187,7 +187,7 @@ namespace Furesoft.Signals
             }
         }
 
-        public static IpcChannel CreateRecieverChannel(string name, Action<IpcChannel> configurator = null)
+        public static IpcChannel CreateRecieverChannel(string name, Action<IpcConfiguration> configurator = null)
         {
             var channel = new IpcChannel();
 
@@ -216,17 +216,26 @@ namespace Furesoft.Signals
             channel.stream_communicator.ReadPosition = 0;
             channel.stream_communicator.StartReader();
 
-            if (configurator != null) configurator(channel);
+            if (configurator != null)
+            {
+                var config = new IpcConfiguration();
+                configurator(config);
+
+                foreach (var func in config.shared_functions)
+                {
+                    channel.shared_functions.Add(func.Key, func.Value);
+                }
+            }
 
             return channel;
         }
 
-        public static IpcChannel CreateRecieverChannel(int name)
+        public static IpcChannel CreateRecieverChannel(int name, Action<IpcConfiguration> configurator = null)
         {
-            return CreateRecieverChannel(name.ToString());
+            return CreateRecieverChannel(name.ToString(), configurator);
         }
 
-        public static IpcChannel CreateSenderChannel(string name, Action<IpcChannel> configurator = null)
+        public static IpcChannel CreateSenderChannel(string name, Action<IpcConfiguration> configurator = null)
         {
             var channel = new IpcChannel();
 
@@ -252,14 +261,23 @@ namespace Furesoft.Signals
             channel.stream_communicator.WritePosition = 0;
             channel.stream_communicator.StartReader();
 
-            if (configurator != null) configurator(channel);
+            if (configurator != null)
+            {
+                var config = new IpcConfiguration();
+                configurator(config);
+
+                foreach (var func in config.shared_functions)
+                {
+                    channel.shared_functions.Add(func.Key, func.Value);
+                }
+            }
 
             return channel;
         }
 
-        public static IpcChannel CreateSenderChannel(int name)
+        public static IpcChannel CreateSenderChannel(int name, Action<IpcConfiguration> configurator = null)
         {
-            return CreateSenderChannel(name.ToString());
+            return CreateSenderChannel(name.ToString(), configurator);
         }
 
         public static SharedObject<T> CreateSharedObject<T>(int id, bool sender = false)
