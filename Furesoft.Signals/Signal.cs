@@ -321,6 +321,7 @@ namespace Furesoft.Signals
         internal enum MethodConstants
         {
             GetSignature = 316497852,
+            GetAllIds = 316497853,
         }
 
         private static ManualResetEvent mre = new ManualResetEvent(false);

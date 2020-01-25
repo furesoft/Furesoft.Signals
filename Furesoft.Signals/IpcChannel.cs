@@ -12,6 +12,7 @@ namespace Furesoft.Signals
         public IpcChannel()
         {
             shared_functions.Add((int)Signal.MethodConstants.GetSignature, GetMethodInfo(nameof(GetSignature)));
+            shared_functions.Add((int)Signal.MethodConstants.GetAllIds, GetMethodInfo(nameof(GetMethodIds)));
         }
 
         public static IpcChannel operator +(IpcChannel channel, Action<object> callback)
@@ -92,6 +93,11 @@ namespace Furesoft.Signals
             }
 
             return res.ToArray();
+        }
+
+        private int[] GetMethodIds()
+        {
+            return shared_functions.Keys.ToArray();
         }
 
         private MethodInfo GetMethodInfo(string name)
