@@ -11,9 +11,9 @@
 Features: SharedMethods, SharedObjects, Events
 Currently working on a shared stream
 </Description>
-    <AssemblyVersion>1.0.0.8</AssemblyVersion>
-    <FileVersion>1.0.0.8</FileVersion>
-    <Version>1.0.8</Version>
+    <AssemblyVersion>1.0.0.9</AssemblyVersion>
+    <FileVersion>1.0.0.9</FileVersion>
+    <Version>1.0.9</Version>
     <PackageLicenseExpression></PackageLicenseExpression>
   </PropertyGroup>
 
