@@ -45,9 +45,15 @@ namespace Furesoft.Signals
 
             if (_readBuffer.Count > 0)
             {
-                var data = _readBuffer.Dequeue().Data;
-                Array.Copy(data, 0, buffer, 0, data.Length);
+                var data = _readBuffer.Dequeue()?.Data;
+                if (data != null)
+                {
+                    Array.Copy(data, 0, buffer, 0, data.Length);
+                }
+
                 mre.Reset();
+
+                return data.Length;
             }
 
             return 0;
