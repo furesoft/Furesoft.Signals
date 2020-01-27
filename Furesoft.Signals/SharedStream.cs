@@ -88,7 +88,13 @@ namespace Furesoft.Signals
 
         private void Stream_communicator_DataReceived(object sender, Core.DataReceivedEventArgs e)
         {
-            _readBuffer.Enqueue(JsonConvert.DeserializeObject<StreamChunk>(System.Text.Encoding.UTF8.GetString(e.Data)));
+            var rawString = System.Text.Encoding.UTF8.GetString(e.Data);
+            var desObj = JsonConvert.DeserializeObject<StreamChunk>(rawString);
+
+            if (desObj != null)
+            {
+                _readBuffer.Enqueue(desObj);
+            }
             mre.Set();
         }
     }

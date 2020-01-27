@@ -72,10 +72,13 @@ namespace TestClient
             {
                 byte[] buffer = BitConverter.GetBytes(i);
 
+                Console.WriteLine($"{i} is written on shared stream");
+
                 strm.Write(buffer, 0, buffer.Length);
             }
 
             strm.Flush();
+            Console.WriteLine("Shared stream flushed");
 
             Signal.Subscribe<PingArg>(channel, _ =>
             {
