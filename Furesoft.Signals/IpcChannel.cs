@@ -68,12 +68,12 @@ namespace Furesoft.Signals
             });
         }
 
-        internal MemoryMappedFileCommunicator communicator;
-        internal MemoryMappedFileCommunicator event_communicator;
-        internal MemoryMappedFileCommunicator func_communicator;
+        internal ISignalBackend communicator;
+        internal ISignalBackend event_communicator;
+        internal ISignalBackend func_communicator;
         internal List<int> notTrackedfuncs = new List<int>();
         internal Dictionary<int, MethodInfo> shared_functions = new Dictionary<int, MethodInfo>();
-        internal MemoryMappedFileCommunicator stream_communicator;
+        internal ISignalBackend stream_communicator;
 
         private SignatureParameter[] BuildSigParameters(ParameterInfo[] pi)
         {

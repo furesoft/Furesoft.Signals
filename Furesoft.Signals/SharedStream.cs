@@ -3,6 +3,7 @@ using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Text;
 using System.Threading;
 
 namespace Furesoft.Signals
@@ -22,7 +23,7 @@ namespace Furesoft.Signals
         public SharedStream(IpcChannel channel)
         {
             _channel = channel;
-            _channel.stream_communicator.DataReceived += Stream_communicator_DataReceived;
+            _channel.stream_communicator.OnNewMessage += onNewMessage;
         }
 
         public override void Close()
@@ -35,7 +36,7 @@ namespace Furesoft.Signals
             foreach (var chunk in _writeBuffer)
             {
                 var json = JsonConvert.SerializeObject(chunk);
-                _channel.stream_communicator.Write(json);
+                _channel.stream_communicator.Write(Encoding.ASCII.GetBytes(json));
             }
         }
 
@@ -86,9 +87,9 @@ namespace Furesoft.Signals
         private int lastID = 0;
         private ManualResetEvent mre = new ManualResetEvent(false);
 
-        private void Stream_communicator_DataReceived(object sender, Core.DataReceivedEventArgs e)
+        private void onNewMessage(byte[] data)
         {
-            var rawString = System.Text.Encoding.UTF8.GetString(e.Data);
+            var rawString = System.Text.Encoding.UTF8.GetString(data);
             var desObj = JsonConvert.DeserializeObject<StreamChunk>(rawString);
 
             if (desObj != null)
