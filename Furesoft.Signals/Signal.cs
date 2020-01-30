@@ -198,10 +198,10 @@ namespace Furesoft.Signals
             channel.func_communicator = new TBackend();
             channel.stream_communicator = new TBackend();
 
-            channel.communicator.Initialize(name, 4096, false);
-            channel.event_communicator.Initialize(name + ".events", 4096, false);
-            channel.func_communicator.Initialize(name + ".funcs", 4096, false);
-            channel.stream_communicator.Initialize(name + ".chunks", 4096, false);
+            channel.communicator.Initialize(name, 4096, true);
+            channel.event_communicator.Initialize(name + ".events", 4096, true);
+            channel.func_communicator.Initialize(name + ".funcs", 4096, true);
+            channel.stream_communicator.Initialize(name + ".chunks", 4096, true);
 
             if (configurator != null)
             {
@@ -243,10 +243,10 @@ namespace Furesoft.Signals
             channel.func_communicator = new TBackend();
             channel.stream_communicator = new TBackend();
 
-            channel.communicator.Initialize(name, 4096, true);
-            channel.event_communicator.Initialize(name + ".events", 4096, true);
-            channel.func_communicator.Initialize(name + ".funcs", 4096, true);
-            channel.stream_communicator.Initialize(name + ".chunks", 4096, true);
+            channel.communicator.Initialize(name, 4096, false);
+            channel.event_communicator.Initialize(name + ".events", 4096, false);
+            channel.func_communicator.Initialize(name + ".funcs", 4096, false);
+            channel.stream_communicator.Initialize(name + ".chunks", 4096, false);
 
             if (configurator != null)
             {

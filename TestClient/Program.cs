@@ -1,5 +1,6 @@
 ﻿using Furesoft.Signals;
 using Furesoft.Signals.Attributes;
+using Furesoft.Signals.Backends;
 using System;
 using System.ComponentModel;
 using System.Reflection;
@@ -65,7 +66,7 @@ namespace TestClient
 
         private static void Main(string[] args)
         {
-            var channel = Signal.CreateSenderChannel("signals.test5");
+            var channel = Signal.CreateSenderChannel<MmfPipeBackend>("signals.test8");
 
             var strm = Signal.CreateSharedStream(channel);
             for (int i = 1; i <= 25; i++)
