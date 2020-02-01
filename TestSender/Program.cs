@@ -15,6 +15,11 @@ namespace TestSender
         {
             var channel = Signal.CreateRecieverChannel("signals.test8");
 
+            new Action(async () =>
+            {
+                var asynctest = await Signal.CallMethodAsync<PingArg>(channel, 0xC0FFEE, new PingArg { Message = "ping" }, true, null);
+            }).Invoke();
+
             var json_res = Signal.CallMethod<JObject>(channel, 0xC0FFEE2);
 
             var strm = Signal.CreateSharedStream(channel);

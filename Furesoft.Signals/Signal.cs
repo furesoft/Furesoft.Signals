@@ -36,39 +36,48 @@ namespace Furesoft.Signals
 
         public static T CallMethod<T>(IpcChannel channel, int id, params object[] arg)
         {
+            return Task.Run(() => CallMethodAsync<T>(channel, id, arg)).Result;
+        }
+
+        public static Task<T> CallMethodAsync<T>(IpcChannel channel, int id, params object[] arg)
+        {
             mre.Reset();
             T ret = default;
             string json = null;
-            Optional<string> errorMessage = false;
+            TaskCompletionSource<T> tcs = new TaskCompletionSource<T>();
 
             channel.communicator.OnNewMessage += (data) =>
-              {
-                  var resp = Serializer.Deserialize<FunctionCallResponse>(data);
+            {
+                var resp = Serializer.Deserialize<FunctionCallResponse>(data);
 
-                  if (resp.ID == id)
-                  {
-                      if (string.IsNullOrEmpty(resp.ErrorMessage))
-                      {
-                          if (resp.ReturnValue != null)
-                          {
-                              if (typeof(T) == typeof(JObject))
-                              {
-                                  json = Serializer.Deserialize<string>(resp.ReturnValue);
-                              }
-                              else
-                              {
-                                  ret = Serializer.Deserialize<T>(resp.ReturnValue);
-                              }
-                          }
-                      }
-                      else
-                      {
-                          errorMessage = resp.ErrorMessage.ToOptional();
-                      }
+                if (resp.ID == id)
+                {
+                    if (string.IsNullOrEmpty(resp.ErrorMessage))
+                    {
+                        if (resp.ReturnValue != null)
+                        {
+                            if (typeof(T) == typeof(JObject))
+                            {
+                                json = Serializer.Deserialize<string>(resp.ReturnValue);
+                            }
+                            else
+                            {
+                                ret = Serializer.Deserialize<T>(resp.ReturnValue);
+                            }
+                        }
+                    }
+                    else
+                    {
+                        var ex = new Exception(resp.ErrorMessage);
+                        MethodInfo preserveStackTrace = typeof(Exception).GetMethod("InternalPreserveStackTrace", BindingFlags.Instance | BindingFlags.NonPublic);
+                        if (preserveStackTrace != null) preserveStackTrace.Invoke(ex, null);
 
-                      mre.Set();
-                  }
-              };
+                        tcs.TrySetException(ex);
+                    }
+
+                    mre.Set();
+                }
+            };
 
             var m = new FunctionCallRequest
             {
@@ -82,22 +91,16 @@ namespace Furesoft.Signals
 
             mre.WaitOne();
 
-            if (errorMessage)
-            {
-                throw new Exception(errorMessage);
-            }
-
             if (typeof(T) == typeof(JObject))
             {
-                return (T)JsonConvert.DeserializeObject(json);
+                tcs.TrySetResult((T)JsonConvert.DeserializeObject(json));
+            }
+            else
+            {
+                tcs.TrySetResult(ret);
             }
 
-            return ret;
-        }
-
-        public static Task<T> CallMethodAsync<T>(IpcChannel channel, int id, params object[] args)
-        {
-            return Task.Run(() => CallMethod<T>(channel, id, args));
+            return tcs.Task;
         }
 
         public static void CollectAllShared(IpcChannel channel)

@@ -74,6 +74,7 @@ namespace TestClient
         private static void Main(string[] args)
         {
             var channel = Signal.CreateSenderChannel("signals.test8");
+            Signal.CollectAllShared(channel);
 
             var strm = Signal.CreateSharedStream(channel);
             for (int i = 1; i <= 25; i++)
@@ -97,8 +98,6 @@ namespace TestClient
             shared += (_) => Console.WriteLine(_);
             shared_arr = Signal.CreateSharedObject<int[]>(0xFF00DF, true);
             shared_arr += (_) => Console.WriteLine(string.Join(',', _));
-
-            Signal.CollectAllShared(channel);
 
             while (true)
             {
