@@ -52,6 +52,13 @@ namespace TestClient
             return res.ToString();
         }
 
+        [SharedFunction(0xC0FFEE2)]
+        [Description("Json Test Method")]
+        public static string JsonTest()
+        {
+            return "{ \"data\": {\"value\": true}}";
+        }
+
         [SharedFunction(0xC0FFEE)]
         [Description("Handshake Method")]
         public static PingArg Pong(PingArg arg, bool active, object notnull)
@@ -66,7 +73,7 @@ namespace TestClient
 
         private static void Main(string[] args)
         {
-            var channel = Signal.CreateSenderChannel<MmfPipeBackend>("signals.test8");
+            var channel = Signal.CreateSenderChannel("signals.test8");
 
             var strm = Signal.CreateSharedStream(channel);
             for (int i = 1; i <= 25; i++)

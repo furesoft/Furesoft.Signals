@@ -1,5 +1,6 @@
 ﻿using Furesoft.Signals;
 using Furesoft.Signals.Backends;
+using Newtonsoft.Json.Linq;
 using System;
 using TestModels;
 
@@ -12,7 +13,9 @@ namespace TestSender
 
         private static void Main(string[] args)
         {
-            var channel = Signal.CreateRecieverChannel<MmfPipeBackend>("signals.test8");
+            var channel = Signal.CreateRecieverChannel("signals.test8");
+
+            var json_res = Signal.CallMethod<JObject>(channel, 0xC0FFEE2);
 
             var strm = Signal.CreateSharedStream(channel);
 
