@@ -23,7 +23,7 @@ namespace Furesoft.Signals
         public SharedStream(IpcChannel channel)
         {
             _channel = channel;
-            _channel.stream_communicator.OnNewMessage += onNewMessage;
+            _channel.stream_communicator.OnNewMessage += OnNewMessage;
         }
 
         public override void Close()
@@ -72,22 +72,24 @@ namespace Furesoft.Signals
 
         public override void Write(byte[] buffer, int offset, int count)
         {
-            var chunk = new StreamChunk();
-            chunk.ID = lastID++;
-            chunk.Data = buffer;
-            chunk.Length = buffer.Length;
+            var chunk = new StreamChunk
+            {
+                ID = lastID++,
+                Data = buffer,
+                Length = buffer.Length
+            };
 
             _writeBuffer.Enqueue(chunk);
         }
 
-        private IpcChannel _channel;
-        private Queue<StreamChunk> _readBuffer = new Queue<StreamChunk>();
-        private Queue<StreamChunk> _writeBuffer = new Queue<StreamChunk>();
+        private readonly IpcChannel _channel;
+        private readonly Queue<StreamChunk> _readBuffer = new Queue<StreamChunk>();
+        private readonly Queue<StreamChunk> _writeBuffer = new Queue<StreamChunk>();
 
+        private readonly ManualResetEvent mre = new ManualResetEvent(false);
         private int lastID = 0;
-        private ManualResetEvent mre = new ManualResetEvent(false);
 
-        private void onNewMessage(byte[] data)
+        private void OnNewMessage(byte[] data)
         {
             var rawString = System.Text.Encoding.UTF8.GetString(data);
             var desObj = JsonConvert.DeserializeObject<StreamChunk>(rawString);

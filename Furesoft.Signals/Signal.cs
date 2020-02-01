@@ -153,7 +153,7 @@ namespace Furesoft.Signals
 
                                  try
                                  {
-                                     FuncFilterResult beforecallresult = filterAtt.BeforeCall(methodInfo, (id.HasValue ? id.Value : -1));
+                                     FuncFilterResult beforecallresult = filterAtt.BeforeCall(methodInfo, id ?? -1);
                                      if (beforecallresult)
                                      {
                                          if (methodInfo.IsStatic)
@@ -165,7 +165,7 @@ namespace Furesoft.Signals
                                              res = methodInfo.Invoke(channel, args);
                                          }
 
-                                         res = filterAtt.AfterCall(methodInfo, (id.HasValue ? id.Value : -1), res);
+                                         res = filterAtt.AfterCall(methodInfo, id ?? -1, res);
                                      }
                                      else
                                      {
@@ -206,12 +206,13 @@ namespace Furesoft.Signals
         public static IpcChannel CreateRecieverChannel<TBackend>(string name, Action<IpcConfiguration> configurator = null)
             where TBackend : ISignalBackend, new()
         {
-            var channel = new IpcChannel();
-
-            channel.communicator = new TBackend();
-            channel.event_communicator = new TBackend();
-            channel.func_communicator = new TBackend();
-            channel.stream_communicator = new TBackend();
+            var channel = new IpcChannel
+            {
+                communicator = new TBackend(),
+                event_communicator = new TBackend(),
+                func_communicator = new TBackend(),
+                stream_communicator = new TBackend()
+            };
 
             channel.communicator.Initialize(name, 4096, true);
             channel.event_communicator.Initialize(name + ".events", 4096, true);
@@ -251,12 +252,13 @@ namespace Furesoft.Signals
         public static IpcChannel CreateSenderChannel<TBackend>(string name, Action<IpcConfiguration> configurator = null)
             where TBackend : ISignalBackend, new()
         {
-            var channel = new IpcChannel();
-
-            channel.communicator = new TBackend();
-            channel.event_communicator = new TBackend();
-            channel.func_communicator = new TBackend();
-            channel.stream_communicator = new TBackend();
+            var channel = new IpcChannel
+            {
+                communicator = new TBackend(),
+                event_communicator = new TBackend(),
+                func_communicator = new TBackend(),
+                stream_communicator = new TBackend()
+            };
 
             channel.communicator.Initialize(name, 4096, false);
             channel.event_communicator.Initialize(name + ".events", 4096, false);
@@ -344,8 +346,8 @@ namespace Furesoft.Signals
             GetAllIds = 316497853,
         }
 
-        private static ManualResetEvent mre = new ManualResetEvent(false);
-        private static Queue<RecieveRequest> recieveQueue = new Queue<RecieveRequest>();
+        private static readonly ManualResetEvent mre = new ManualResetEvent(false);
+        private static readonly Queue<RecieveRequest> recieveQueue = new Queue<RecieveRequest>();
 
         private static void Communicator_DataReceived(object sender, DataReceivedEventArgs e)
         {

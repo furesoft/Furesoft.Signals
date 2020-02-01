@@ -9,7 +9,7 @@ using TestModels;
 
 namespace TestClient
 {
-    public class RequireAuthAttribute : Attribute, IFuncFilter
+    public sealed class RequireAuthAttribute : Attribute, IFuncFilter
     {
         public int Right { get; }
 
