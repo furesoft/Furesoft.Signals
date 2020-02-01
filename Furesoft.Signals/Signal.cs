@@ -1,6 +1,9 @@
 using Furesoft.Signals.Attributes;
+using Furesoft.Signals.Backends;
 using Furesoft.Signals.Core;
 using Furesoft.Signals.Messages;
+using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -34,12 +37,13 @@ namespace Furesoft.Signals
         public static T CallMethod<T>(IpcChannel channel, int id, params object[] arg)
         {
             mre.Reset();
-            T ret = default(T);
+            T ret = default;
+            string json = null;
             Optional<string> errorMessage = false;
 
-            channel.communicator.DataReceived += (s, e) =>
+            channel.communicator.OnNewMessage += (data) =>
               {
-                  var resp = Serializer.Deserialize<FunctionCallResponse>(e.Data);
+                  var resp = Serializer.Deserialize<FunctionCallResponse>(data);
 
                   if (resp.ID == id)
                   {
@@ -47,7 +51,14 @@ namespace Furesoft.Signals
                       {
                           if (resp.ReturnValue != null)
                           {
-                              ret = Serializer.Deserialize<T>(resp.ReturnValue);
+                              if (typeof(T) == typeof(JObject))
+                              {
+                                  json = Serializer.Deserialize<string>(resp.ReturnValue);
+                              }
+                              else
+                              {
+                                  ret = Serializer.Deserialize<T>(resp.ReturnValue);
+                              }
                           }
                       }
                       else
@@ -74,6 +85,11 @@ namespace Furesoft.Signals
             if (errorMessage)
             {
                 throw new Exception(errorMessage);
+            }
+
+            if (typeof(T) == typeof(JObject))
+            {
+                return (T)JsonConvert.DeserializeObject(json);
             }
 
             return ret;
@@ -115,9 +131,9 @@ namespace Furesoft.Signals
                                 channel.shared_functions.Add(mattr.ID, m);
                             }
 
-                            channel.communicator.DataReceived += (s, e) =>
+                            channel.communicator.OnNewMessage += (data) =>
                              {
-                                 var obj = Serializer.Deserialize<FunctionCallRequest>(e.Data);
+                                 var obj = Serializer.Deserialize<FunctionCallRequest>(data);
 
                                  Optional<string> error = false;
                                  object res = null;
@@ -137,7 +153,7 @@ namespace Furesoft.Signals
 
                                  try
                                  {
-                                     FuncFilterResult beforecallresult = filterAtt.BeforeCall(methodInfo, (id.HasValue ? id.Value : -1));
+                                     FuncFilterResult beforecallresult = filterAtt.BeforeCall(methodInfo, id ?? -1);
                                      if (beforecallresult)
                                      {
                                          if (methodInfo.IsStatic)
@@ -149,7 +165,7 @@ namespace Furesoft.Signals
                                              res = methodInfo.Invoke(channel, args);
                                          }
 
-                                         res = filterAtt.AfterCall(methodInfo, (id.HasValue ? id.Value : -1), res);
+                                         res = filterAtt.AfterCall(methodInfo, id ?? -1, res);
                                      }
                                      else
                                      {
@@ -187,34 +203,21 @@ namespace Furesoft.Signals
             }
         }
 
-        public static IpcChannel CreateRecieverChannel(string name, Action<IpcConfiguration> configurator = null)
+        public static IpcChannel CreateRecieverChannel<TBackend>(string name, Action<IpcConfiguration> configurator = null)
+            where TBackend : ISignalBackend, new()
         {
-            var channel = new IpcChannel();
+            var channel = new IpcChannel
+            {
+                communicator = new TBackend(),
+                event_communicator = new TBackend(),
+                func_communicator = new TBackend(),
+                stream_communicator = new TBackend()
+            };
 
-            //Initialize Main communicator
-            channel.communicator = new MemoryMappedFileCommunicator(name, 4096);
-            channel.communicator.WritePosition = 2000;
-            channel.communicator.ReadPosition = 0;
-            channel.communicator.DataReceived += new EventHandler<DataReceivedEventArgs>(Communicator_DataReceived);
-            channel.communicator.StartReader();
-
-            //initialize event communicator
-            channel.event_communicator = new MemoryMappedFileCommunicator(name + ".events", 4096);
-            channel.event_communicator.WritePosition = 2000;
-            channel.event_communicator.ReadPosition = 0;
-            channel.event_communicator.StartReader();
-
-            //initialize func communicator
-            channel.func_communicator = new MemoryMappedFileCommunicator(name + ".funcs", 4096);
-            channel.func_communicator.WritePosition = 2000;
-            channel.func_communicator.ReadPosition = 0;
-            channel.func_communicator.StartReader();
-
-            //initialize stream communicator
-            channel.stream_communicator = new MemoryMappedFileCommunicator(name + ".chunks", 4096);
-            channel.stream_communicator.WritePosition = 2000;
-            channel.stream_communicator.ReadPosition = 0;
-            channel.stream_communicator.StartReader();
+            channel.communicator.Initialize(name, 4096, true);
+            channel.event_communicator.Initialize(name + ".events", 4096, true);
+            channel.func_communicator.Initialize(name + ".funcs", 4096, true);
+            channel.stream_communicator.Initialize(name + ".chunks", 4096, true);
 
             if (configurator != null)
             {
@@ -230,36 +233,37 @@ namespace Furesoft.Signals
             return channel;
         }
 
-        public static IpcChannel CreateRecieverChannel(int name, Action<IpcConfiguration> configurator = null)
+        public static IpcChannel CreateRecieverChannel<TBackend>(int name, Action<IpcConfiguration> configurator = null)
+            where TBackend : ISignalBackend, new()
         {
-            return CreateRecieverChannel(name.ToString(), configurator);
+            return CreateRecieverChannel<TBackend>(name.ToString(), configurator);
+        }
+
+        public static IpcChannel CreateRecieverChannel(string name, Action<IpcConfiguration> configurator = null)
+        {
+            return CreateRecieverChannel<MmfCommunicatorBackend>(name, configurator);
         }
 
         public static IpcChannel CreateSenderChannel(string name, Action<IpcConfiguration> configurator = null)
         {
-            var channel = new IpcChannel();
+            return CreateSenderChannel<MmfCommunicatorBackend>(name, configurator);
+        }
 
-            channel.communicator = new MemoryMappedFileCommunicator(name, 4096);
-            channel.communicator.ReadPosition = 2000;
-            channel.communicator.WritePosition = 0;
-            channel.communicator.DataReceived += new EventHandler<DataReceivedEventArgs>(Communicator_DataReceived);
+        public static IpcChannel CreateSenderChannel<TBackend>(string name, Action<IpcConfiguration> configurator = null)
+            where TBackend : ISignalBackend, new()
+        {
+            var channel = new IpcChannel
+            {
+                communicator = new TBackend(),
+                event_communicator = new TBackend(),
+                func_communicator = new TBackend(),
+                stream_communicator = new TBackend()
+            };
 
-            channel.communicator.StartReader();
-
-            channel.event_communicator = new MemoryMappedFileCommunicator(name + ".events", 4096);
-            channel.event_communicator.ReadPosition = 2000;
-            channel.event_communicator.WritePosition = 0;
-            channel.event_communicator.StartReader();
-
-            channel.func_communicator = new MemoryMappedFileCommunicator(name + ".funcs", 4096);
-            channel.func_communicator.ReadPosition = 2000;
-            channel.func_communicator.WritePosition = 0;
-            channel.func_communicator.StartReader();
-
-            channel.stream_communicator = new MemoryMappedFileCommunicator(name + ".chunks", 4096);
-            channel.stream_communicator.ReadPosition = 2000;
-            channel.stream_communicator.WritePosition = 0;
-            channel.stream_communicator.StartReader();
+            channel.communicator.Initialize(name, 4096, false);
+            channel.event_communicator.Initialize(name + ".events", 4096, false);
+            channel.func_communicator.Initialize(name + ".funcs", 4096, false);
+            channel.stream_communicator.Initialize(name + ".chunks", 4096, false);
 
             if (configurator != null)
             {
@@ -323,13 +327,13 @@ namespace Furesoft.Signals
 
         public static void Subscribe<EventType>(IpcChannel channel, Action<EventType> callback)
         {
-            channel.event_communicator.DataReceived += (s, e) =>
+            channel.event_communicator.OnNewMessage += (data) =>
             {
                 var objid = typeof(EventType).GUID;
 
-                if (objid == new Guid(e.Data.Take(16).ToArray()))
+                if (objid == new Guid(data.Take(16).ToArray()))
                 {
-                    var obj = Serializer.Deserialize<EventType>(e.Data.Skip(16).ToArray());
+                    var obj = Serializer.Deserialize<EventType>(data.Skip(16).ToArray());
 
                     callback(obj);
                 }
@@ -342,8 +346,8 @@ namespace Furesoft.Signals
             GetAllIds = 316497853,
         }
 
-        private static ManualResetEvent mre = new ManualResetEvent(false);
-        private static Queue<RecieveRequest> recieveQueue = new Queue<RecieveRequest>();
+        private static readonly ManualResetEvent mre = new ManualResetEvent(false);
+        private static readonly Queue<RecieveRequest> recieveQueue = new Queue<RecieveRequest>();
 
         private static void Communicator_DataReceived(object sender, DataReceivedEventArgs e)
         {

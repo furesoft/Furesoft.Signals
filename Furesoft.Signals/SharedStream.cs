@@ -3,6 +3,7 @@ using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Text;
 using System.Threading;
 
 namespace Furesoft.Signals
@@ -22,7 +23,7 @@ namespace Furesoft.Signals
         public SharedStream(IpcChannel channel)
         {
             _channel = channel;
-            _channel.stream_communicator.DataReceived += Stream_communicator_DataReceived;
+            _channel.stream_communicator.OnNewMessage += OnNewMessage;
         }
 
         public override void Close()
@@ -35,7 +36,7 @@ namespace Furesoft.Signals
             foreach (var chunk in _writeBuffer)
             {
                 var json = JsonConvert.SerializeObject(chunk);
-                _channel.stream_communicator.Write(json);
+                _channel.stream_communicator.Write(Encoding.ASCII.GetBytes(json));
             }
         }
 
@@ -71,24 +72,26 @@ namespace Furesoft.Signals
 
         public override void Write(byte[] buffer, int offset, int count)
         {
-            var chunk = new StreamChunk();
-            chunk.ID = lastID++;
-            chunk.Data = buffer;
-            chunk.Length = buffer.Length;
+            var chunk = new StreamChunk
+            {
+                ID = lastID++,
+                Data = buffer,
+                Length = buffer.Length
+            };
 
             _writeBuffer.Enqueue(chunk);
         }
 
-        private IpcChannel _channel;
-        private Queue<StreamChunk> _readBuffer = new Queue<StreamChunk>();
-        private Queue<StreamChunk> _writeBuffer = new Queue<StreamChunk>();
+        private readonly IpcChannel _channel;
+        private readonly Queue<StreamChunk> _readBuffer = new Queue<StreamChunk>();
+        private readonly Queue<StreamChunk> _writeBuffer = new Queue<StreamChunk>();
 
+        private readonly ManualResetEvent mre = new ManualResetEvent(false);
         private int lastID = 0;
-        private ManualResetEvent mre = new ManualResetEvent(false);
 
-        private void Stream_communicator_DataReceived(object sender, Core.DataReceivedEventArgs e)
+        private void OnNewMessage(byte[] data)
         {
-            var rawString = System.Text.Encoding.UTF8.GetString(e.Data);
+            var rawString = System.Text.Encoding.UTF8.GetString(data);
             var desObj = JsonConvert.DeserializeObject<StreamChunk>(rawString);
 
             if (desObj != null)

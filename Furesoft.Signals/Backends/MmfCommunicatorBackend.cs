@@ -5,30 +5,25 @@ namespace Furesoft.Signals.Backends
 {
     public class MmfCommunicatorBackend : ISignalBackend
     {
-        public long Capacity { get; private set; }
-
-        public string Name { get; private set; }
-
-        public MmfCommunicatorBackend(string name, long capacity)
-        {
-            Name = name;
-            Capacity = capacity;
-        }
-
         public event Action<byte[]> OnNewMessage;
 
-        public void Initialize(bool isOwner)
+        public void Dispose()
+        {
+            communicator.Dispose();
+        }
+
+        public void Initialize(string name, long capacity, bool isOwner)
         {
             if (isOwner)
             {
-                communicator = new MemoryMappedFileCommunicator(Name, Capacity);
+                communicator = new MemoryMappedFileCommunicator(name, capacity);
                 communicator.ReadPosition = 2000;
                 communicator.WritePosition = 0;
                 communicator.StartReader();
             }
             else
             {
-                communicator = new MemoryMappedFileCommunicator(Name, Capacity);
+                communicator = new MemoryMappedFileCommunicator(name, capacity);
                 communicator.WritePosition = 2000;
                 communicator.ReadPosition = 0;
                 communicator.StartReader();
