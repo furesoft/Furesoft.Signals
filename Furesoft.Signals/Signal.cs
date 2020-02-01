@@ -2,6 +2,8 @@ using Furesoft.Signals.Attributes;
 using Furesoft.Signals.Backends;
 using Furesoft.Signals.Core;
 using Furesoft.Signals.Messages;
+using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -35,7 +37,8 @@ namespace Furesoft.Signals
         public static T CallMethod<T>(IpcChannel channel, int id, params object[] arg)
         {
             mre.Reset();
-            T ret = default(T);
+            T ret = default;
+            string json = null;
             Optional<string> errorMessage = false;
 
             channel.communicator.OnNewMessage += (data) =>
@@ -48,7 +51,14 @@ namespace Furesoft.Signals
                       {
                           if (resp.ReturnValue != null)
                           {
-                              ret = Serializer.Deserialize<T>(resp.ReturnValue);
+                              if (typeof(T) == typeof(JObject))
+                              {
+                                  json = Serializer.Deserialize<string>(resp.ReturnValue);
+                              }
+                              else
+                              {
+                                  ret = Serializer.Deserialize<T>(resp.ReturnValue);
+                              }
                           }
                       }
                       else
@@ -75,6 +85,11 @@ namespace Furesoft.Signals
             if (errorMessage)
             {
                 throw new Exception(errorMessage);
+            }
+
+            if (typeof(T) == typeof(JObject))
+            {
+                return (T)JsonConvert.DeserializeObject(json);
             }
 
             return ret;
