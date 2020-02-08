@@ -4,34 +4,39 @@ using System.Collections.Generic;
 
 namespace Furesoft.Signals
 {
-    public class SharedObject<T> : IDisposable
+    public sealed class SharedObject<T> : IDisposable
     {
-        private List<Action<T>> _callbacks = new List<Action<T>>();
-        private MemoryMappedFileCommunicator communicator;
-
         public int ID { get; private set; }
 
-        internal static SharedObject<T> CreateSender(int id)
+        public static SharedObject<T> operator +(SharedObject<T> obj, Action<T> callback)
         {
-            var obj = new SharedObject<T>();
-            obj.ID = id;
-
-            obj.communicator = new MemoryMappedFileCommunicator($"{id.ToString()}.shared", 4096);
-            obj.communicator.ReadPosition = 2000;
-            obj.communicator.WritePosition = 0;
-            obj.communicator.DataReceived += (s, e) =>
-            {
-                var o = Signal.Serializer.Deserialize<T>(e.Data);
-
-                obj._callbacks.ForEach(_ =>
-                {
-                    _(o);
-                });
-            };
-
-            obj.communicator.StartReader();
+            obj.OnChanged(callback);
 
             return obj;
+        }
+
+        public static SharedObject<T> operator +(SharedObject<T> obj, T value)
+        {
+            obj.SetValue(value);
+
+            return obj;
+        }
+
+        public void Dispose()
+        {
+            communicator.Dispose();
+            communicator = null;
+        }
+
+        public void OnChanged(Action<T> callback)
+        {
+            _callbacks.Add(callback);
+        }
+
+        public void SetValue(T value)
+        {
+            var raw = Signal.Serializer.Serialize(value);
+            communicator.Write(raw);
         }
 
         internal static SharedObject<T> CreateReciever(int id)
@@ -57,35 +62,30 @@ namespace Furesoft.Signals
             return obj;
         }
 
-        public void Dispose()
+        internal static SharedObject<T> CreateSender(int id)
         {
-            communicator.Dispose();
-            communicator = null;
-        }
+            var obj = new SharedObject<T>();
+            obj.ID = id;
 
-        public void OnChanged(Action<T> callback)
-        {
-            _callbacks.Add(callback);
-        }
+            obj.communicator = new MemoryMappedFileCommunicator($"{id.ToString()}.shared", 4096);
+            obj.communicator.ReadPosition = 2000;
+            obj.communicator.WritePosition = 0;
+            obj.communicator.DataReceived += (s, e) =>
+            {
+                var o = Signal.Serializer.Deserialize<T>(e.Data);
 
-        public void SetValue(T value)
-        {
-            var raw = Signal.Serializer.Serialize(value);
-            communicator.Write(raw);
-        }
+                obj._callbacks.ForEach(_ =>
+                {
+                    _(o);
+                });
+            };
 
-        public static SharedObject<T> operator +(SharedObject<T> obj, Action<T> callback)
-        {
-            obj.OnChanged(callback);
+            obj.communicator.StartReader();
 
             return obj;
         }
 
-        public static SharedObject<T> operator +(SharedObject<T> obj, T value)
-        {
-            obj.SetValue(value);
-
-            return obj;
-        }
+        private List<Action<T>> _callbacks = new List<Action<T>>();
+        private MemoryMappedFileCommunicator communicator;
     }
 }

@@ -17,18 +17,10 @@ namespace TestSender
 
             new Action(async () =>
             {
-                var asynctest = await Signal.CallMethodAsync<PingArg>(channel, 0xC0FFEE, new PingArg { Message = "ping" }, true, null);
+                var asynctest = await Signal.CallMethodAsync<PingArg>(channel, 0xC0FFEE, new PingArg { Message = "ping" }, true, 12);
             }).Invoke();
 
             var json_res = Signal.CallMethod<JObject>(channel, 0xC0FFEE2);
-
-            var strm = Signal.CreateSharedStream(channel);
-
-            byte[] buffer = new byte[4];
-            while (strm.Read(buffer, 0, buffer.Length) != 0)
-            {
-                Console.WriteLine(BitConverter.ToInt32(buffer));
-            }
 
             var pw = Signal.CallMethod<string>(channel, 0xBEEF, 5);
             var pwd = channel.ToFunc<int, string>(0xBEEF)(5);

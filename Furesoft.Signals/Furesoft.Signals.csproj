@@ -7,9 +7,8 @@
     <RepositoryUrl>https://github.com/furesoft/Furesoft.Signals</RepositoryUrl>
     <PackageProjectUrl>https://github.com/furesoft/Furesoft.Signals</PackageProjectUrl>
     <Copyright>Furesoft</Copyright>
-    <Description>Simple IPC throug Signals with event support with mmf backend
+    <Description>Simple IPC throug  mmf backend
 Features: SharedMethods, SharedObjects, Events
-Currently working on a shared stream
 </Description>
     <AssemblyVersion>1.0.0.11</AssemblyVersion>
     <FileVersion>1.0.0.11</FileVersion>

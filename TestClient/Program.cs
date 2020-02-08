@@ -76,19 +76,6 @@ namespace TestClient
             var channel = Signal.CreateSenderChannel("signals.test8");
             Signal.CollectAllShared(channel);
 
-            var strm = Signal.CreateSharedStream(channel);
-            for (int i = 1; i <= 25; i++)
-            {
-                byte[] buffer = BitConverter.GetBytes(i);
-
-                Console.WriteLine($"{i} is written on shared stream");
-
-                strm.Write(buffer, 0, buffer.Length);
-            }
-
-            strm.Flush();
-            Console.WriteLine("Shared stream flushed");
-
             Signal.Subscribe<PingArg>(channel, _ =>
             {
                 Console.WriteLine(_.Message);
@@ -102,6 +89,7 @@ namespace TestClient
             while (true)
             {
                 var input = Console.ReadLine();
+
                 var arg = int.Parse(input);
                 if (arg < 0) break;
 

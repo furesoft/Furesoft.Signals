@@ -23,25 +23,8 @@ namespace Furesoft.Signals
 
         public void Dispose()
         {
-            communicator.Dispose();
             event_communicator.Dispose();
             func_communicator.Dispose();
-        }
-
-        public Action<IpcMessage> ToDelegate()
-        {
-            return new Action<IpcMessage>(msg =>
-           {
-               Signal.Send(this, msg);
-           });
-        }
-
-        public Action<EventType> ToDelegate<EventType>()
-        {
-            return new Action<EventType>(msg =>
-           {
-               Signal.CallEvent(this, msg);
-           });
         }
 
         public Func<TArg, TResult> ToFunc<TArg, TResult>(int id)
@@ -68,12 +51,10 @@ namespace Furesoft.Signals
             });
         }
 
-        internal ISignalBackend communicator;
         internal ISignalBackend event_communicator;
         internal ISignalBackend func_communicator;
         internal List<int> notTrackedfuncs = new List<int>();
         internal Dictionary<int, MethodInfo> shared_functions = new Dictionary<int, MethodInfo>();
-        internal ISignalBackend stream_communicator;
 
         private SignatureParameter[] BuildSigParameters(ParameterInfo[] pi)
         {

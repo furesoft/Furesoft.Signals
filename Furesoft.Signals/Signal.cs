@@ -9,7 +9,6 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Reflection;
-using System.Threading;
 using System.Threading.Tasks;
 
 namespace Furesoft.Signals
@@ -41,12 +40,9 @@ namespace Furesoft.Signals
 
         public static Task<T> CallMethodAsync<T>(IpcChannel channel, int id, params object[] arg)
         {
-            mre.Reset();
-            T ret = default;
-            string json = null;
             TaskCompletionSource<T> tcs = new TaskCompletionSource<T>();
 
-            channel.communicator.OnNewMessage += (data) =>
+            channel.func_communicator.OnNewMessage += (data) =>
             {
                 var resp = Serializer.Deserialize<FunctionCallResponse>(data);
 
@@ -58,24 +54,20 @@ namespace Furesoft.Signals
                         {
                             if (typeof(T) == typeof(JObject))
                             {
-                                json = Serializer.Deserialize<string>(resp.ReturnValue);
+                                tcs.TrySetResult((T)JsonConvert.DeserializeObject(Serializer.Deserialize<string>(resp.ReturnValue)));
                             }
                             else
                             {
-                                ret = Serializer.Deserialize<T>(resp.ReturnValue);
+                                tcs.TrySetResult(Serializer.Deserialize<T>(resp.ReturnValue));
                             }
                         }
                     }
                     else
                     {
                         var ex = new Exception(resp.ErrorMessage);
-                        MethodInfo preserveStackTrace = typeof(Exception).GetMethod("InternalPreserveStackTrace", BindingFlags.Instance | BindingFlags.NonPublic);
-                        if (preserveStackTrace != null) preserveStackTrace.Invoke(ex, null);
 
                         tcs.TrySetException(ex);
                     }
-
-                    mre.Set();
                 }
             };
 
@@ -87,18 +79,7 @@ namespace Furesoft.Signals
 
             var raw = Serializer.Serialize(m);
 
-            channel.communicator.Write(raw);
-
-            mre.WaitOne();
-
-            if (typeof(T) == typeof(JObject))
-            {
-                tcs.TrySetResult((T)JsonConvert.DeserializeObject(json));
-            }
-            else
-            {
-                tcs.TrySetResult(ret);
-            }
+            channel.func_communicator.Write(raw);
 
             return tcs.Task;
         }
@@ -134,7 +115,7 @@ namespace Furesoft.Signals
                                 channel.shared_functions.Add(mattr.ID, m);
                             }
 
-                            channel.communicator.OnNewMessage += (data) =>
+                            channel.func_communicator.OnNewMessage += (data) =>
                              {
                                  var obj = Serializer.Deserialize<FunctionCallRequest>(data);
 
@@ -159,16 +140,23 @@ namespace Furesoft.Signals
                                      FuncFilterResult beforecallresult = filterAtt.BeforeCall(methodInfo, id ?? -1);
                                      if (beforecallresult)
                                      {
-                                         if (methodInfo.IsStatic)
+                                         try
                                          {
-                                             res = methodInfo.Invoke(null, args);
-                                         }
-                                         else
-                                         {
-                                             res = methodInfo.Invoke(channel, args);
-                                         }
+                                             if (methodInfo.IsStatic)
+                                             {
+                                                 res = methodInfo.Invoke(null, args);
+                                             }
+                                             else
+                                             {
+                                                 res = methodInfo.Invoke(channel, args);
+                                             }
 
-                                         res = filterAtt.AfterCall(methodInfo, id ?? -1, res);
+                                             res = filterAtt.AfterCall(methodInfo, id ?? -1, res);
+                                         }
+                                         catch (Exception ex)
+                                         {
+                                             error = ex.Message.ToOptional();
+                                         }
                                      }
                                      else
                                      {
@@ -198,7 +186,7 @@ namespace Furesoft.Signals
                                  }
 
                                  var raw = Serializer.Serialize(resp);
-                                 channel.communicator.Write(raw);
+                                 channel.func_communicator.Write(raw);
                              };
                         }
                     }
@@ -211,16 +199,12 @@ namespace Furesoft.Signals
         {
             var channel = new IpcChannel
             {
-                communicator = new TBackend(),
                 event_communicator = new TBackend(),
-                func_communicator = new TBackend(),
-                stream_communicator = new TBackend()
+                func_communicator = new TBackend()
             };
 
-            channel.communicator.Initialize(name, 4096, true);
             channel.event_communicator.Initialize(name + ".events", 4096, true);
             channel.func_communicator.Initialize(name + ".funcs", 4096, true);
-            channel.stream_communicator.Initialize(name + ".chunks", 4096, true);
 
             if (configurator != null)
             {
@@ -257,16 +241,12 @@ namespace Furesoft.Signals
         {
             var channel = new IpcChannel
             {
-                communicator = new TBackend(),
                 event_communicator = new TBackend(),
-                func_communicator = new TBackend(),
-                stream_communicator = new TBackend()
+                func_communicator = new TBackend()
             };
 
-            channel.communicator.Initialize(name, 4096, false);
             channel.event_communicator.Initialize(name + ".events", 4096, false);
             channel.func_communicator.Initialize(name + ".funcs", 4096, false);
-            channel.stream_communicator.Initialize(name + ".chunks", 4096, false);
 
             if (configurator != null)
             {
@@ -297,35 +277,9 @@ namespace Furesoft.Signals
             return SharedObject<T>.CreateReciever(id);
         }
 
-        public static Stream CreateSharedStream(IpcChannel channel)
-        {
-            var sStrm = new SharedStream(channel);
-
-            return sStrm;
-        }
-
         public static Signature GetSignatureOf(IpcChannel channel, int id)
         {
             return CallMethod<Signature>(channel, (int)MethodConstants.GetSignature, id);
-        }
-
-        public static void Recieve<T>(Action<T> callback)
-        {
-            recieveQueue.Enqueue(
-                new RecieveRequest
-                {
-                    Type = typeof(T),
-                    Callback = new Action<object>(
-                        o => callback((T)o)),
-                    Name = typeof(T).Name
-                });
-        }
-
-        public static void Send(IpcChannel channel, IpcMessage msg)
-        {
-            var raw = Serializer.Serialize(msg);
-
-            channel.communicator.Write(raw);
         }
 
         public static void Subscribe<EventType>(IpcChannel channel, Action<EventType> callback)
@@ -347,20 +301,6 @@ namespace Furesoft.Signals
         {
             GetSignature = 316497852,
             GetAllIds = 316497853,
-        }
-
-        private static readonly ManualResetEvent mre = new ManualResetEvent(false);
-        private static readonly Queue<RecieveRequest> recieveQueue = new Queue<RecieveRequest>();
-
-        private static void Communicator_DataReceived(object sender, DataReceivedEventArgs e)
-        {
-            if (recieveQueue.Count > 0)
-            {
-                var request = recieveQueue.Dequeue();
-                var obj = Serializer.Deserialize(e.Data, request.Type);
-
-                request.Callback(obj);
-            }
         }
 
         private static object[] GetDeserializedParameters(ParameterInfo[] parameterInfo, byte[][] parameterRaw)
