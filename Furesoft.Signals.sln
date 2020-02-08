@@ -19,6 +19,10 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution 
 		ToDo.txt = ToDo.txt
 	EndProjectSection
 EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Backends", "Backends", "{1075D4D6-DACE-4269-A38A-26AEA753FAC1}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Furesoft.Signals.Backends.Network", "Backends\Furesoft.Signals.Backends.Network\Furesoft.Signals.Backends.Network.csproj", "{5E9E2580-FD8B-4BA7-B992-B2ABAEE823AF}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -41,6 +45,10 @@ Global
 		{DFD342DC-3442-43DA-9D85-D7C91847DA6D}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{DFD342DC-3442-43DA-9D85-D7C91847DA6D}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{DFD342DC-3442-43DA-9D85-D7C91847DA6D}.Release|Any CPU.Build.0 = Release|Any CPU
+		{5E9E2580-FD8B-4BA7-B992-B2ABAEE823AF}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{5E9E2580-FD8B-4BA7-B992-B2ABAEE823AF}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{5E9E2580-FD8B-4BA7-B992-B2ABAEE823AF}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{5E9E2580-FD8B-4BA7-B992-B2ABAEE823AF}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -49,6 +57,7 @@ Global
 		{698E9F51-2406-439B-8D1B-96B452E5BF8B} = {6926022E-1207-486B-B9CC-751CBE12FBA5}
 		{B6927777-D17F-4906-B0D1-79F3F22F7733} = {6926022E-1207-486B-B9CC-751CBE12FBA5}
 		{DFD342DC-3442-43DA-9D85-D7C91847DA6D} = {6926022E-1207-486B-B9CC-751CBE12FBA5}
+		{5E9E2580-FD8B-4BA7-B992-B2ABAEE823AF} = {1075D4D6-DACE-4269-A38A-26AEA753FAC1}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {D9A017CA-2274-4CC1-AD0C-D51413DE913B}
