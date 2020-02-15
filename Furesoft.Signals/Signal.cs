@@ -9,6 +9,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Reflection;
+using System.Text;
 using System.Threading.Tasks;
 
 namespace Furesoft.Signals
@@ -93,6 +94,8 @@ namespace Furesoft.Signals
 
         public static void CollectShared(IpcChannel channel, params Type[] types)
         {
+            Logger.Trace("Collecting Shared Functions");
+
             foreach (var t in types)
             {
                 var attr = t.GetCustomAttribute<SharedAttribute>();
@@ -117,6 +120,8 @@ namespace Furesoft.Signals
 
                             channel.func_communicator.OnNewMessage += (data) =>
                              {
+                                 Logger.Trace("Recieved Msg on FuncComm: " + Encoding.ASCII.GetString(data));
+
                                  var obj = Serializer.Deserialize<FunctionCallRequest>(data);
 
                                  Optional<string> error = false;
@@ -203,6 +208,18 @@ namespace Furesoft.Signals
                 func_communicator = new TBackend()
             };
 
+            if (NLog.LogManager.Configuration == null)
+            {
+                var config = new NLog.Config.LoggingConfiguration();
+                var logconsole = new NLog.Targets.ConsoleTarget("logconsole");
+
+                // Rules for mapping loggers to targets
+                config.AddRule(NLog.LogLevel.Trace, NLog.LogLevel.Fatal, logconsole);
+
+                // Apply config
+                NLog.LogManager.Configuration = config;
+            }
+
             channel.event_communicator.Initialize(name + ".events", 4096, true);
             channel.func_communicator.Initialize(name + ".funcs", 4096, true);
 
@@ -244,6 +261,18 @@ namespace Furesoft.Signals
                 event_communicator = new TBackend(),
                 func_communicator = new TBackend()
             };
+
+            if (NLog.LogManager.Configuration == null)
+            {
+                var config = new NLog.Config.LoggingConfiguration();
+                var logconsole = new NLog.Targets.ConsoleTarget("logconsole");
+
+                // Rules for mapping loggers to targets
+                config.AddRule(NLog.LogLevel.Trace, NLog.LogLevel.Fatal, logconsole);
+
+                // Apply config
+                NLog.LogManager.Configuration = config;
+            }
 
             channel.event_communicator.Initialize(name + ".events", 4096, false);
             channel.func_communicator.Initialize(name + ".funcs", 4096, false);
@@ -302,6 +331,8 @@ namespace Furesoft.Signals
             GetSignature = 316497852,
             GetAllIds = 316497853,
         }
+
+        private static readonly NLog.Logger Logger = NLog.LogManager.GetCurrentClassLogger();
 
         private static object[] GetDeserializedParameters(ParameterInfo[] parameterInfo, byte[][] parameterRaw)
         {

@@ -73,7 +73,7 @@ namespace TestClient
 
         private static void Main(string[] args)
         {
-            var channel = Signal.CreateSenderChannel("signals.test8");
+            var channel = Signal.CreateSenderChannel<MmfPipeBackend>("signals.test8");
             Signal.CollectAllShared(channel);
 
             Signal.Subscribe<PingArg>(channel, _ =>
