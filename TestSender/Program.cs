@@ -13,7 +13,7 @@ namespace TestSender
 
         private static void Main(string[] args)
         {
-            var channel = Signal.CreateRecieverChannel<MmfPipeBackend>("signals.test8");
+            var channel = Signal.CreateRecieverChannel("signals.test8");
 
             new Action(async () =>
             {
