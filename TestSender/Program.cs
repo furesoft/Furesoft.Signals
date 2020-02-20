@@ -12,6 +12,8 @@ namespace TestSender
 
         private static void Main(string[] args)
         {
+            Signal.EnableLogging();
+
             var channel = Signal.CreateRecieverChannel("signals.test8");
 
             new Action(async () =>

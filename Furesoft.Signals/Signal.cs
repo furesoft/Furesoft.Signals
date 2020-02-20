@@ -262,18 +262,6 @@ namespace Furesoft.Signals
                 func_communicator = new TBackend()
             };
 
-            if (NLog.LogManager.Configuration == null)
-            {
-                var config = new NLog.Config.LoggingConfiguration();
-                var logconsole = new NLog.Targets.ConsoleTarget("logconsole");
-
-                // Rules for mapping loggers to targets
-                config.AddRule(NLog.LogLevel.Trace, NLog.LogLevel.Fatal, logconsole);
-
-                // Apply config
-                NLog.LogManager.Configuration = config;
-            }
-
             channel.event_communicator.Initialize(name + ".events", 4096, false);
             channel.func_communicator.Initialize(name + ".funcs", 4096, false);
 
@@ -347,6 +335,21 @@ namespace Furesoft.Signals
         private static bool IsArgumentMismatch(ParameterInfo[] parameterInfo, byte[][] parameterJson)
         {
             return parameterInfo.Length != parameterJson.Length;
+        }
+
+        public static void EnableLogging()
+        {
+            if (NLog.LogManager.Configuration == null)
+            {
+                var config = new NLog.Config.LoggingConfiguration();
+                var logconsole = new NLog.Targets.ConsoleTarget("logconsole");
+
+                // Rules for mapping loggers to targets
+                config.AddRule(NLog.LogLevel.Trace, NLog.LogLevel.Fatal, logconsole);
+
+                // Apply config
+                NLog.LogManager.Configuration = config;
+            }
         }
     }
 }
