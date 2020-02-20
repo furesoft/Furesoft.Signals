@@ -1,6 +1,5 @@
 ﻿using Furesoft.Signals.Core;
 using System;
-using System.IO;
 
 namespace Furesoft.Signals.Backends
 {

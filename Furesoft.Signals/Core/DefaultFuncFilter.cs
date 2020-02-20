@@ -1,5 +1,5 @@
-﻿using System.Reflection;
-using Furesoft.Signals.Attributes;
+﻿using Furesoft.Signals.Attributes;
+using System.Reflection;
 
 namespace Furesoft.Signals.Core
 {

@@ -4,9 +4,9 @@ namespace Furesoft.Signals
 {
     public interface ISerializer
     {
-        byte[] Serialize(object obj);
-
         object Deserialize(byte[] raw, Type type);
+
+        byte[] Serialize(object obj);
     }
 
     public static class ISerializerExtensions

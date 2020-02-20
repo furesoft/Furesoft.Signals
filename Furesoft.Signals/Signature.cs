@@ -6,12 +6,11 @@ namespace Furesoft.Signals
 {
     public class Signature
     {
-        public string ReturnType { get; set; }
-        public SignatureParameter[] Parameters { get; set; } = new SignatureParameter[0];
+        public static Signature Empty => new Signature();
         public string Description { get; set; }
         public int ID { get; set; }
-
-        public static Signature Empty => new Signature();
+        public SignatureParameter[] Parameters { get; set; } = new SignatureParameter[0];
+        public string ReturnType { get; set; }
 
         public override string ToString()
         {
@@ -55,10 +54,10 @@ namespace Furesoft.Signals
 
     public class SignatureParameter
     {
-        public bool IsOptional { get; set; }
-        public string Type { get; set; }
-        public string Name { get; set; }
         public string Description { get; set; }
+        public bool IsOptional { get; set; }
+        public string Name { get; set; }
+        public string Type { get; set; }
 
         public override string ToString()
         {

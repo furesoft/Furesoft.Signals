@@ -1,7 +1,4 @@
-﻿using System;
-using System.IO;
-
-namespace Furesoft.Signals.Messages
+﻿namespace Furesoft.Signals.Messages
 {
     public class StreamChunk
     {

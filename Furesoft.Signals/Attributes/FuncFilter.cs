@@ -4,15 +4,15 @@ namespace Furesoft.Signals.Attributes
 {
     public interface IFuncFilter
     {
-        FuncFilterResult BeforeCall(MethodInfo mi, int id);
-
         object AfterCall(MethodInfo mi, int id, object returnValue);
+
+        FuncFilterResult BeforeCall(MethodInfo mi, int id);
     }
 
     public class FuncFilterResult
     {
-        public bool Success { get; set; }
         public Optional<string> ErrorMessage { get; set; } = false;
+        public bool Success { get; set; }
 
         public static implicit operator bool(FuncFilterResult r)
         {
