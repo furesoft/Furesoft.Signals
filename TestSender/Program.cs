@@ -1,9 +1,6 @@
 ﻿using Furesoft.Signals;
-using Furesoft.Signals.Backends;
-using Furesoft.Signals.Core;
 using Newtonsoft.Json.Linq;
 using System;
-using System.Text;
 using TestModels;
 
 namespace TestSender
@@ -22,7 +19,7 @@ namespace TestSender
                 var asynctest = await Signal.CallMethodAsync<PingArg>(channel, 0xC0FFEE, new PingArg { Message = "ping" }, true, 12);
             }).Invoke();
 
-            /*var json_res = Signal.CallMethod<JObject>(channel, 0xC0FFEE2);
+            var json_res = Signal.CallMethod<JObject>(channel, 0xC0FFEE2);
 
             var pw = Signal.CallMethod<string>(channel, 0xBEEF, 5);
             var pwd = channel.ToFunc<int, string>(0xBEEF)(5);
@@ -41,7 +38,7 @@ namespace TestSender
             shared_arr += new int[] { 42, 5, 3, 6 };
 
             channel.Dispose();
-            */
+
             Console.ReadLine();
         }
     }

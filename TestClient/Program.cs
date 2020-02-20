@@ -1,7 +1,5 @@
 ﻿using Furesoft.Signals;
 using Furesoft.Signals.Attributes;
-using Furesoft.Signals.Backends;
-using Furesoft.Signals.Core;
 using System;
 using System.ComponentModel;
 using System.Reflection;
@@ -82,7 +80,7 @@ namespace TestClient
                 Console.WriteLine(_.Message);
             });
 
-            /*
+
             shared = Signal.CreateSharedObject<int>(0xFF00DE, true);
             shared += (_) => Console.WriteLine(_);
             shared_arr = Signal.CreateSharedObject<int[]>(0xFF00DF, true);
@@ -97,9 +95,9 @@ namespace TestClient
 
                 shared += arg;
             }
-            */
 
-            //channel.Dispose();
+
+            channel.Dispose();
             Console.ReadLine();
         }
     }

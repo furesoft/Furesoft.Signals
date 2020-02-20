@@ -193,8 +193,6 @@ namespace Furesoft.Signals
                             {
                                 channel.shared_functions.Add(mattr.ID, m);
                             }
-
-
                         }
                     }
                 }
