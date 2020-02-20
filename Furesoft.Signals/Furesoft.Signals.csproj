@@ -10,9 +10,9 @@
     <Description>Simple IPC throug  mmf backend
 Features: SharedMethods, SharedObjects, Events
 </Description>
-    <AssemblyVersion>1.0.0.12</AssemblyVersion>
-    <FileVersion>1.0.0.12</FileVersion>
-    <Version>1.0.12</Version>
+    <AssemblyVersion>1.0.0.13</AssemblyVersion>
+    <FileVersion>1.0.0.13</FileVersion>
+    <Version>1.0.13</Version>
     <PackageLicenseExpression></PackageLicenseExpression>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
     <Company>Furesoft</Company>
