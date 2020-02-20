@@ -96,6 +96,82 @@ namespace Furesoft.Signals
         {
             Logger.Trace("Collecting Shared Functions");
 
+            channel.func_communicator.OnNewMessage += (data) =>
+            {
+                Logger.Trace("Recieved Msg on FuncComm: " + Encoding.ASCII.GetString(data));
+
+                var obj = Serializer.Deserialize<FunctionCallRequest>(data);
+
+                Optional<string> error = false;
+                object res = null;
+                object[] args = null;
+
+                var methodInfo = channel.shared_functions[obj.ID];
+                var parameterInfo = methodInfo.GetParameters();
+
+                if (!IsArgumentMismatch(parameterInfo, obj.ParameterRaw))
+                {
+                    args = GetDeserializedParameters(parameterInfo, obj.ParameterRaw);
+                }
+
+                var tm = (IFuncFilter)methodInfo.GetCustomAttributes(true).Where(x => x is IFuncFilter).FirstOrDefault();
+                var filterAtt = tm ?? new DefaultFuncFilter();
+                var id = methodInfo.GetCustomAttribute<SharedFunctionAttribute>()?.ID;
+
+                try
+                {
+                    FuncFilterResult beforecallresult = filterAtt.BeforeCall(methodInfo, id ?? -1);
+                    if (beforecallresult)
+                    {
+                        try
+                        {
+                            if (methodInfo.IsStatic)
+                            {
+                                res = methodInfo.Invoke(null, args);
+                            }
+                            else
+                            {
+                                res = methodInfo.Invoke(channel, args);
+                            }
+
+                            res = filterAtt.AfterCall(methodInfo, id ?? -1, res);
+                        }
+                        catch (Exception ex)
+                        {
+                            error = ex.Message.ToOptional();
+                        }
+                    }
+                    else
+                    {
+                        if (beforecallresult.ErrorMessage)
+                        {
+                            error = beforecallresult.ErrorMessage;
+                        }
+                    }
+                }
+                catch (Exception ex)
+                {
+                    error = ex.Message.ToOptional();
+                }
+
+                var resp = new FunctionCallResponse
+                {
+                    ID = obj.ID
+                };
+
+                if (!error)
+                {
+                    resp.ReturnValue = Serializer.Serialize(res);
+                }
+                else
+                {
+                    resp.ErrorMessage = error;
+                }
+
+                var raw = Serializer.Serialize(resp);
+                channel.func_communicator.Write(raw);
+            };
+
             foreach (var t in types)
             {
                 var attr = t.GetCustomAttribute<SharedAttribute>();
@@ -118,81 +194,7 @@ namespace Furesoft.Signals
                                 channel.shared_functions.Add(mattr.ID, m);
                             }
 
-                            channel.func_communicator.OnNewMessage += (data) =>
-                             {
-                                 Logger.Trace("Recieved Msg on FuncComm: " + Encoding.ASCII.GetString(data));
 
-                                 var obj = Serializer.Deserialize<FunctionCallRequest>(data);
-
-                                 Optional<string> error = false;
-                                 object res = null;
-                                 object[] args = null;
-
-                                 var methodInfo = channel.shared_functions[obj.ID];
-                                 var parameterInfo = methodInfo.GetParameters();
-
-                                 if (!IsArgumentMismatch(parameterInfo, obj.ParameterRaw))
-                                 {
-                                     args = GetDeserializedParameters(parameterInfo, obj.ParameterRaw);
-                                 }
-
-                                 var tm = (IFuncFilter)methodInfo.GetCustomAttributes(true).Where(x => x is IFuncFilter).FirstOrDefault();
-                                 var filterAtt = tm ?? new DefaultFuncFilter();
-                                 var id = methodInfo.GetCustomAttribute<SharedFunctionAttribute>()?.ID;
-
-                                 try
-                                 {
-                                     FuncFilterResult beforecallresult = filterAtt.BeforeCall(methodInfo, id ?? -1);
-                                     if (beforecallresult)
-                                     {
-                                         try
-                                         {
-                                             if (methodInfo.IsStatic)
-                                             {
-                                                 res = methodInfo.Invoke(null, args);
-                                             }
-                                             else
-                                             {
-                                                 res = methodInfo.Invoke(channel, args);
-                                             }
-
-                                             res = filterAtt.AfterCall(methodInfo, id ?? -1, res);
-                                         }
-                                         catch (Exception ex)
-                                         {
-                                             error = ex.Message.ToOptional();
-                                         }
-                                     }
-                                     else
-                                     {
-                                         if (beforecallresult.ErrorMessage)
-                                         {
-                                             error = beforecallresult.ErrorMessage;
-                                         }
-                                     }
-                                 }
-                                 catch (Exception ex)
-                                 {
-                                     error = ex.Message.ToOptional();
-                                 }
-
-                                 var resp = new FunctionCallResponse
-                                 {
-                                     ID = obj.ID
-                                 };
-
-                                 if (!error)
-                                 {
-                                     resp.ReturnValue = Serializer.Serialize(res);
-                                 }
-                                 else
-                                 {
-                                     resp.ErrorMessage = error;
-                                 }
-
-                                 var raw = Serializer.Serialize(resp);
-                                 channel.func_communicator.Write(raw);
-                             };
                         }
                     }
                 }
