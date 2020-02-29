@@ -9,7 +9,6 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Reflection;
-using System.Text;
 using System.Threading.Tasks;
 
 namespace Furesoft.Signals
@@ -98,8 +97,6 @@ namespace Furesoft.Signals
 
             channel.func_communicator.OnNewMessage += (data) =>
             {
-                Logger.Trace("Recieved Msg on FuncComm: " + Encoding.ASCII.GetString(data));
-
                 var obj = Serializer.Deserialize<FunctionCallRequest>(data);
 
                 Optional<string> error = false;
@@ -294,6 +291,21 @@ namespace Furesoft.Signals
             return SharedObject<T>.CreateReciever(id);
         }
 
+        public static void EnableLogging()
+        {
+            if (NLog.LogManager.Configuration == null)
+            {
+                var config = new NLog.Config.LoggingConfiguration();
+                var logconsole = new NLog.Targets.ConsoleTarget("logconsole");
+
+                // Rules for mapping loggers to targets
+                config.AddRule(NLog.LogLevel.Trace, NLog.LogLevel.Fatal, logconsole);
+
+                // Apply config
+                NLog.LogManager.Configuration = config;
+            }
+        }
+
         public static Signature GetSignatureOf(IpcChannel channel, int id)
         {
             return CallMethod<Signature>(channel, (int)MethodConstants.GetSignature, id);
@@ -335,21 +347,6 @@ namespace Furesoft.Signals
         private static bool IsArgumentMismatch(ParameterInfo[] parameterInfo, byte[][] parameterJson)
         {
             return parameterInfo.Length != parameterJson.Length;
-        }
-
-        public static void EnableLogging()
-        {
-            if (NLog.LogManager.Configuration == null)
-            {
-                var config = new NLog.Config.LoggingConfiguration();
-                var logconsole = new NLog.Targets.ConsoleTarget("logconsole");
-
-                // Rules for mapping loggers to targets
-                config.AddRule(NLog.LogLevel.Trace, NLog.LogLevel.Fatal, logconsole);
-
-                // Apply config
-                NLog.LogManager.Configuration = config;
-            }
         }
     }
 }

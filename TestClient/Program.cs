@@ -80,7 +80,6 @@ namespace TestClient
                 Console.WriteLine(_.Message);
             });
 
-
             shared = Signal.CreateSharedObject<int>(0xFF00DE, true);
             shared += (_) => Console.WriteLine(_);
             shared_arr = Signal.CreateSharedObject<int[]>(0xFF00DF, true);
@@ -95,7 +94,6 @@ namespace TestClient
 
                 shared += arg;
             }
-
 
             channel.Dispose();
             Console.ReadLine();
