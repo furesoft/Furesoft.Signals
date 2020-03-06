@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Furesoft.Signals.Core;
+using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Linq;
@@ -12,6 +13,13 @@ namespace Furesoft.Signals
         {
             shared_functions.Add((int)Signal.MethodConstants.GetSignature, GetMethodInfo(nameof(GetSignature)));
             shared_functions.Add((int)Signal.MethodConstants.GetAllIds, GetMethodInfo(nameof(GetMethodIds)));
+
+            this.Retain();
+        }
+
+        ~IpcChannel()
+        {
+            this.Release();
         }
 
         public static IpcChannel operator +(IpcChannel channel, Action<object> callback)
