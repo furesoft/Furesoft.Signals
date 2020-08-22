@@ -3,6 +3,6 @@
     internal class QueueMessage
     {
         public string Typename { get; set; }
-        public byte[] Raw { get; set; }
+        public object Argument { get; set; }
     }
 }
