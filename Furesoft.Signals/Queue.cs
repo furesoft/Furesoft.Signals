@@ -8,9 +8,9 @@ namespace Furesoft.Signals
     public class Queue
     {
         MemoryMappedFileCommunicator _com;
-        private Stack<QueueMessage> _stack = new Stack<QueueMessage>();
+        private List<QueueMessage> _messages = new List<QueueMessage>();
 
-        public static Queue Init(string name, bool isSender = true)
+        public static Queue CreateProducer(string name)
         {
             var q = new Queue();
             q._com = new MemoryMappedFileCommunicator(name, 4096);
@@ -19,7 +19,24 @@ namespace Furesoft.Signals
             q._com.DataReceived += (s, e) =>
             {
                 var o = Signal.Serializer.Deserialize<QueueMessage>(e.Data);
-                q._stack.Push(o);
+                q._messages.Add(o);
+            };
+
+            q._com.StartReader();
+
+            return q;
+        }
+
+        public static Queue CreateConsumer(string name)
+        {
+            var q = new Queue();
+            q._com = new MemoryMappedFileCommunicator(name, 4096);
+            q._com.ReadPosition = 0;
+            q._com.WritePosition = 2000;
+            q._com.DataReceived += (s, e) =>
+            {
+                var o = Signal.Serializer.Deserialize<QueueMessage>(e.Data);
+                q._messages.Add(o);
             };
 
             q._com.StartReader();
