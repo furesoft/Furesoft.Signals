@@ -72,28 +72,16 @@ namespace TestClient
 
         private static void Main(string[] args)
         {
-            var channel = Signal.CreateSenderChannel("signals.test8");
-            Signal.CollectAllShared(channel);
-
-            Signal.Subscribe<PingArg>(channel, _ =>
+            var queue = MessageQueue.CreateConsumer("signals.testqueue");
+            queue.Subscribe<PingArg>(_ =>
             {
                 Console.WriteLine(_.Message);
             });
 
-            shared = Signal.CreateSharedObject<int>(0xFF00DE, true);
-            shared += (_) => Console.WriteLine(_);
-            shared_arr = Signal.CreateSharedObject<int[]>(0xFF00DF, true);
-            shared_arr += (_) => Console.WriteLine(string.Join(',', _));
+            var channel = Signal.CreateSenderChannel("signals.test8");
+            Signal.CollectAllShared(channel);
 
-            while (true)
-            {
-                var input = Console.ReadLine();
-
-                var arg = int.Parse(input);
-                if (arg < 0) break;
-
-                shared += arg;
-            }
+            
 
             channel.Dispose();
             Console.ReadLine();
