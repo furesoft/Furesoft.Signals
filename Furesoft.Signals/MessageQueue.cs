@@ -2,17 +2,19 @@
 using Furesoft.Signals.Messages;
 using System;
 using System.Collections.Generic;
+using System.Runtime.InteropServices;
 
 namespace Furesoft.Signals
 {
     public class MessageQueue
     {
-        MemoryMappedFileCommunicator _com;
+        private MemoryMappedFileCommunicator _com;
         private List<MessageQueueHandler> _handlers = new List<MessageQueueHandler>();
 
         public void Subscribe<T>(Action<T> callback)
+            where T : struct
         {
-            var handler = new MessageQueueHandler { Typename = typeof(T).Name, Action = callback };
+            var handler = new MessageQueueHandler { Typename = typeof(T).Name, Action = callback, Type = typeof(T) };
             _handlers.Add(handler);
         }
 
@@ -27,9 +29,9 @@ namespace Furesoft.Signals
                 var o = Signal.Serializer.Deserialize<QueueMessage>(e.Data);
                 foreach (var h in q._handlers)
                 {
-                    if(h.Typename == o.Typename)
+                    if (h.Typename == o.Typename)
                     {
-                        h.Action.DynamicInvoke(o.Argument);
+                        h.Action.DynamicInvoke(Signal.Serializer.Deserialize(o.Argument, h.Type));
                     }
                 }
             };
@@ -52,7 +54,7 @@ namespace Furesoft.Signals
                 {
                     if (h.Typename == o.Typename)
                     {
-                        h.Action.DynamicInvoke(o.Argument);
+                        h.Action.DynamicInvoke(Signal.Serializer.Deserialize(o.Argument, h.Type));
                     }
                 }
             };
@@ -63,6 +65,7 @@ namespace Furesoft.Signals
         }
 
         public void Publish<T>(T obj)
+            where T : struct
         {
             var msg = new QueueMessage();
             msg.Typename = typeof(T).Name;

@@ -15,12 +15,11 @@ namespace TestSender
             Signal.EnableLogging();
 
             var queue = MessageQueue.CreateProducer("signals.testqueue");
-            queue.Publish(new PingArg { Message = "hello world" });
+            queue.Publish(new TestMessage { Message = "hello world" });
 
             var channel = Signal.CreateRecieverChannel("signals.test8");
 
             var sig = Signal.GetSignatureOf(channel, 0xBADA33);
-
 
             channel.Dispose();
 

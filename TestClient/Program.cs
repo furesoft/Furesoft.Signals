@@ -73,15 +73,13 @@ namespace TestClient
         private static void Main(string[] args)
         {
             var queue = MessageQueue.CreateConsumer("signals.testqueue");
-            queue.Subscribe<PingArg>(_ =>
+            queue.Subscribe<TestMessage>(_ =>
             {
                 Console.WriteLine(_.Message);
             });
 
             var channel = Signal.CreateSenderChannel("signals.test8");
             Signal.CollectAllShared(channel);
-
-            
 
             channel.Dispose();
             Console.ReadLine();
