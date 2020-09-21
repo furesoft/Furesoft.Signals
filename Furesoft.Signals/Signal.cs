@@ -164,11 +164,6 @@ namespace Furesoft.Signals
 
                         if (mattr != null)
                         {
-                            if (m.GetCustomAttribute<NoSignatureAttribute>() != null)
-                            {
-                                channel.notTrackedfuncs.Add(mattr.ID);
-                            }
-
                             if (!channel.shared_functions.ContainsKey(mattr.ID))
                             {
                                 channel.shared_functions.Add(mattr.ID, m);
@@ -287,11 +282,6 @@ namespace Furesoft.Signals
                 // Apply config
                 NLog.LogManager.Configuration = config;
             }
-        }
-
-        public static Signature GetSignatureOf(IpcChannel channel, int id)
-        {
-            return CallMethod<Signature>(channel, (int)MethodConstants.GetSignature, id);
         }
 
         public static void Subscribe<EventType>(IpcChannel channel, Action<EventType> callback)

@@ -1,7 +1,6 @@
 ﻿using Furesoft.Signals;
 using Furesoft.Signals.Attributes;
 using System;
-using System.ComponentModel;
 using System.Text;
 using TestModels;
 
@@ -11,7 +10,6 @@ namespace TestClient
     internal class Program
     {
         [SharedFunction(0xBEEF)]
-        [NoSignature]
         public static string GetPass(int length)
         {
             string chars = "123456789abcdefghijklmopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ@/\\";
@@ -28,14 +26,12 @@ namespace TestClient
         }
 
         [SharedFunction(0xC0FFEE2)]
-        [Description("Json Test Method")]
         public static string JsonTest()
         {
             return "{ \"data\": {\"value\": true}}";
         }
 
         [SharedFunction(0xC0FFEE)]
-        [Description("Handshake Method")]
         public static PingArg Pong(PingArg arg, bool active, object notnull)
         {
             if (notnull == null) throw new ArgumentException(nameof(notnull));

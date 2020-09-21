@@ -11,8 +11,6 @@ namespace TestSender
 
         private static void Main(string[] args)
         {
-            Signal.EnableLogging();
-
             var queue = MessageQueue.Open("signals.testqueue");
             queue.Subscribe<TestMessage>(_ =>
             {
@@ -21,12 +19,6 @@ namespace TestSender
             queue.Echo<TestMessage>();
 
             queue.Publish(new TestMessage { Message = "hello world" });
-
-            var channel = Signal.CreateRecieverChannel("signals.test8");
-
-            var sig = Signal.GetSignatureOf(channel, 0xBADA33);
-
-            channel.Dispose();
 
             Console.ReadLine();
         }
