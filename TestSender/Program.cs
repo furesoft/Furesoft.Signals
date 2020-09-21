@@ -20,7 +20,7 @@ namespace TestSender
 
             queue.Publish(new TestMessage { Message = "hello world" });
 
-            Console.ReadLine();
+            Console.Read();
         }
     }
 }

@@ -55,8 +55,7 @@ namespace TestClient
             var channel = Signal.CreateSenderChannel("signals.test8");
             Signal.CollectAllShared(channel);
 
-            channel.Dispose();
-            Console.ReadLine();
+            Console.Read();
         }
     }
 }
