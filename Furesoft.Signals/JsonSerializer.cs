@@ -2,7 +2,7 @@
 using System;
 using System.Text;
 
-namespace Furesoft.Signals.Serializers
+namespace Furesoft.Signals
 {
     public class JsonSerializer : ISerializer
     {

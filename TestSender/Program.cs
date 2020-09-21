@@ -11,36 +11,16 @@ namespace TestSender
 
         private static void Main(string[] args)
         {
-            var channel = Signal.CreateRecieverChannel("signals.test5");
-
-            var pw = Signal.CallMethod<string>(channel, 0xBEEF, 5);
-            var pwd = channel.ToFunc<int, string>(0xBEEF)(5);
-
-            Signal.CallEvent(channel, new PingArg { Message = "hello world" });
-
-            var sig = Signal.GetSignatureOf(channel, 0xBADA33);
-            var res = Signal.CallMethod<PingArg>(channel, 0xC0FFEE, new PingArg { Message = "ping" }, true, "");
-
-            shared = Signal.CreateSharedObject<int>(0xFF00DE);
-            shared += (_) => Console.WriteLine(_);
-
-            shared_arr = Signal.CreateSharedObject<int[]>(0xFF00DF);
-            shared_arr += (_) => Console.WriteLine(_);
-
-            shared_arr += new int[] { 42, 5, 3, 6 };
-
-            var strm = Signal.CreateSharedStream(channel);
-
-            for (int i = 1; i <= 2; i++)
+            var queue = MessageQueue.Open("signals.testqueue");
+            queue.Subscribe<TestMessage>(_ =>
             {
-                byte[] buffer = new byte[25];
-                strm.Read(buffer, 0, buffer.Length);
+                Console.WriteLine(_.Message);
+            });
+            queue.Echo<TestMessage>();
 
-                Console.WriteLine(BitConverter.ToInt32(buffer));
-            }
+            queue.Publish(new TestMessage { Message = "hello world" });
 
-            channel.Dispose();
-            Console.ReadLine();
+            Console.Read();
         }
     }
 }

@@ -10,22 +10,8 @@ namespace Furesoft.Signals.Core
     {
         #region Constants
 
-        private const int DATA_AVAILABLE_OFFSET = 0;
-        private const int READ_CONFIRM_OFFSET = DATA_AVAILABLE_OFFSET + 1;
-        private const int DATA_LENGTH_OFFSET = READ_CONFIRM_OFFSET + 1;
-        private const int DATA_OFFSET = DATA_LENGTH_OFFSET + 10;
-
-        #endregion Constants
-
-        #region Properties
-
         public MemoryMappedFile MappedFile { get; set; }
-
-        public event EventHandler<DataReceivedEventArgs> DataReceived;
-
         public int ReadPosition { get; set; }
-
-        private int writePosition;
 
         public int WritePosition
         {
@@ -39,18 +25,6 @@ namespace Furesoft.Signals.Core
                 }
             }
         }
-
-        #endregion Properties
-
-        private MemoryMappedViewAccessor view;
-        private AsyncOperation operation;
-        private SendOrPostCallback callback;
-        private bool started;
-        private bool disposed;
-
-        private Thread writerThread;
-        private List<byte[]> dataToSend;
-        private bool writerThreadRunning;
 
         public MemoryMappedFileCommunicator(string mapName, long capacity)
             : this(MemoryMappedFile.CreateOrOpen(mapName, capacity), 0, 0, MemoryMappedFileAccess.ReadWrite)
@@ -83,6 +57,40 @@ namespace Furesoft.Signals.Core
 
             callback = new SendOrPostCallback(OnDataReceivedInternal);
             operation = AsyncOperationManager.CreateOperation(null);
+        }
+
+        public event EventHandler<DataReceivedEventArgs> DataReceived;
+
+        public void CloseReader()
+        {
+            started = false;
+        }
+
+        public void Dispose()
+        {
+            started = false;
+            if (view != null)
+            {
+                try
+                {
+                    view.Dispose();
+                    view = null;
+                }
+                catch { }
+            }
+
+            if (MappedFile != null)
+            {
+                try
+                {
+                    MappedFile.Dispose();
+                    MappedFile = null;
+                }
+                catch { }
+            }
+
+            disposed = true;
+            GC.SuppressFinalize(this);
         }
 
         public void StartReader()
@@ -149,9 +157,37 @@ namespace Furesoft.Signals.Core
             writerThreadRunning = false;
         }
 
-        public void CloseReader()
+        internal virtual void OnDataReceived(DataReceivedEventArgs e)
         {
-            started = false;
+            if (e != null && DataReceived != null)
+                DataReceived(this, e);
+        }
+
+        private const int DATA_AVAILABLE_OFFSET = 0;
+        private const int DATA_LENGTH_OFFSET = READ_CONFIRM_OFFSET + 1;
+        private const int DATA_OFFSET = DATA_LENGTH_OFFSET + 10;
+        private const int READ_CONFIRM_OFFSET = DATA_AVAILABLE_OFFSET + 1;
+
+        #endregion Constants
+
+        #region Properties
+
+        private SendOrPostCallback callback;
+        private List<byte[]> dataToSend;
+        private bool disposed;
+        private AsyncOperation operation;
+        private bool started;
+        private MemoryMappedViewAccessor view;
+        private int writePosition;
+
+        #endregion Properties
+
+        private Thread writerThread;
+        private bool writerThreadRunning;
+
+        private void OnDataReceivedInternal(object state)
+        {
+            OnDataReceived(state as DataReceivedEventArgs);
         }
 
         private void ReaderThread(object stateInfo)
@@ -180,47 +216,5 @@ namespace Furesoft.Signals.Core
                 Thread.Sleep(500);
             }
         }
-
-        private void OnDataReceivedInternal(object state)
-        {
-            OnDataReceived(state as DataReceivedEventArgs);
-        }
-
-        internal virtual void OnDataReceived(DataReceivedEventArgs e)
-        {
-            if (e != null && DataReceived != null)
-                DataReceived(this, e);
-        }
-
-        #region IDisposable
-
-        public void Dispose()
-        {
-            started = false;
-            if (view != null)
-            {
-                try
-                {
-                    view.Dispose();
-                    view = null;
-                }
-                catch { }
-            }
-
-            if (MappedFile != null)
-            {
-                try
-                {
-                    MappedFile.Dispose();
-                    MappedFile = null;
-                }
-                catch { }
-            }
-
-            disposed = true;
-            GC.SuppressFinalize(this);
-        }
-
-        #endregion IDisposable
     }
 }

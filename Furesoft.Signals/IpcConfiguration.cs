@@ -6,6 +6,8 @@ namespace Furesoft.Signals
 {
     public class IpcConfiguration
     {
+        public ISignalBackend Backend { get; set; }
+
         public void AddSharedFunction(int id, Delegate mi)
         {
             shared_functions.Add(id, mi.GetMethodInfo());
