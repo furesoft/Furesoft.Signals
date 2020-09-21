@@ -15,6 +15,11 @@ namespace TestSender
             Signal.EnableLogging();
 
             var queue = MessageQueue.CreateProducer("signals.testqueue");
+            queue.Subscribe<TestMessage>(_ =>
+            {
+                Console.WriteLine(_.Message);
+            });
+
             queue.Publish(new TestMessage { Message = "hello world" });
 
             var channel = Signal.CreateRecieverChannel("signals.test8");

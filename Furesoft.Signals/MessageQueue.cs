@@ -2,7 +2,6 @@
 using Furesoft.Signals.Messages;
 using System;
 using System.Collections.Generic;
-using System.Runtime.InteropServices;
 
 namespace Furesoft.Signals
 {
@@ -15,6 +14,14 @@ namespace Furesoft.Signals
         {
             var handler = new MessageQueueHandler { Typename = typeof(T).Name, Action = callback, Type = typeof(T) };
             _handlers.Add(handler);
+        }
+
+        public void Echo<T>()
+        {
+            Subscribe<T>(_ =>
+            {
+                Publish<T>(_);
+            });
         }
 
         public static MessageQueue CreateProducer(string name)

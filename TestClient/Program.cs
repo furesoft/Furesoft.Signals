@@ -78,6 +78,8 @@ namespace TestClient
                 Console.WriteLine(_.Message);
             });
 
+            queue.Echo<TestMessage>();
+
             var channel = Signal.CreateSenderChannel("signals.test8");
             Signal.CollectAllShared(channel);
 
