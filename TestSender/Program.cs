@@ -18,6 +18,7 @@ namespace TestSender
             {
                 Console.WriteLine(_.Message);
             });
+            queue.Echo<TestMessage>();
 
             queue.Publish(new TestMessage { Message = "hello world" });
 
