@@ -1,6 +1,4 @@
 using Furesoft.Signals.Attributes;
-using Furesoft.Signals.Backends;
-using Furesoft.Signals.Core;
 using Furesoft.Signals.Messages;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
@@ -15,7 +13,7 @@ namespace Furesoft.Signals
 {
     public static class Signal
     {
-        public static ISerializer Serializer = new Serializers.JsonSerializer();
+        public static ISerializer Serializer = new JsonSerializer();
 
         public static void CallEvent<EventType>(IpcChannel channel, EventType et)
         {

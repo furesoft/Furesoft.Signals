@@ -1,7 +1,7 @@
 ﻿using Furesoft.Signals.Core;
 using System;
 
-namespace Furesoft.Signals.Backends
+namespace Furesoft.Signals
 {
     public class MmfCommunicatorBackend : ISignalBackend
     {
