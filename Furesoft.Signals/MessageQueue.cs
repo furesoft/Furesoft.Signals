@@ -12,7 +12,6 @@ namespace Furesoft.Signals
         private List<MessageQueueHandler> _handlers = new List<MessageQueueHandler>();
 
         public void Subscribe<T>(Action<T> callback)
-            where T : struct
         {
             var handler = new MessageQueueHandler { Typename = typeof(T).Name, Action = callback, Type = typeof(T) };
             _handlers.Add(handler);
@@ -65,7 +64,6 @@ namespace Furesoft.Signals
         }
 
         public void Publish<T>(T obj)
-            where T : struct
         {
             var msg = new QueueMessage();
             msg.Typename = typeof(T).Name;
