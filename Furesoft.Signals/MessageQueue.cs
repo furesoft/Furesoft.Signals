@@ -5,7 +5,7 @@ using System.Collections.Generic;
 
 namespace Furesoft.Signals
 {
-    public class MessageQueue
+    public class MessageQueue : IDisposable
     {
         private MemoryMappedFileCommunicator _com;
         private List<MessageQueueHandler> _handlers = new List<MessageQueueHandler>();
@@ -14,6 +14,14 @@ namespace Furesoft.Signals
         {
             var handler = new MessageQueueHandler { Typename = typeof(T).Name, Action = callback, Type = typeof(T) };
             _handlers.Add(handler);
+        }
+
+        public void Redirect<T>(MessageQueue queue)
+        {
+            Subscribe<T>(_ =>
+            {
+                queue.Publish(_);
+            });
         }
 
         public void Echo<T>()
@@ -77,6 +85,12 @@ namespace Furesoft.Signals
             msg.Argument = Signal.Serializer.Serialize(obj);
 
             _com.Write(Signal.Serializer.Serialize(msg));
+        }
+
+        public void Dispose()
+        {
+            _handlers.Clear();
+            _com.Dispose();
         }
     }
 }
