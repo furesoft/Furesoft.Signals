@@ -2,40 +2,16 @@
 using Furesoft.Signals.Attributes;
 using System;
 using System.ComponentModel;
-using System.Reflection;
 using System.Text;
 using TestModels;
 
 namespace TestClient
 {
-    public sealed class RequireAuthAttribute : Attribute, IFuncFilter
-    {
-        public int Right { get; }
-
-        public RequireAuthAttribute(int right)
-        {
-            Right = right;
-        }
-
-        public object AfterCall(MethodInfo mi, int id, object returnValue)
-        {
-            return returnValue;
-        }
-
-        public FuncFilterResult BeforeCall(MethodInfo mi, int id)
-        {
-            if (Right != 0x255362) return $"You dont habe enough rights to execute the function '0x{id.ToString("x").ToUpper()}";
-
-            return Right == 0x255362;
-        }
-    }
-
     [Shared]
     internal class Program
     {
         [SharedFunction(0xBEEF)]
         [NoSignature]
-        [RequireAuth(0x255362)]
         public static string GetPass(int length)
         {
             string chars = "123456789abcdefghijklmopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ@/\\";

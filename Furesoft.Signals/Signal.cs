@@ -111,39 +111,24 @@ namespace Furesoft.Signals
                     args = GetDeserializedParameters(parameterInfo, obj.ParameterRaw);
                 }
 
-                var tm = (IFuncFilter)methodInfo.GetCustomAttributes(true).Where(x => x is IFuncFilter).FirstOrDefault();
-                var filterAtt = tm ?? new DefaultFuncFilter();
                 var id = methodInfo.GetCustomAttribute<SharedFunctionAttribute>()?.ID;
 
                 try
                 {
-                    FuncFilterResult beforecallresult = filterAtt.BeforeCall(methodInfo, id ?? -1);
-                    if (beforecallresult)
+                    try
                     {
-                        try
+                        if (methodInfo.IsStatic)
                         {
-                            if (methodInfo.IsStatic)
-                            {
-                                res = methodInfo.Invoke(null, args);
-                            }
-                            else
-                            {
-                                res = methodInfo.Invoke(channel, args);
-                            }
-
-                            res = filterAtt.AfterCall(methodInfo, id ?? -1, res);
+                            res = methodInfo.Invoke(null, args);
                         }
-                        catch (Exception ex)
+                        else
                         {
-                            error = ex.Message.ToOptional();
+                            res = methodInfo.Invoke(channel, args);
                         }
                     }
-                    else
+                    catch (Exception ex)
                     {
-                        if (beforecallresult.ErrorMessage)
-                        {
-                            error = beforecallresult.ErrorMessage;
-                        }
+                        error = ex.Message.ToOptional();
                     }
                 }
                 catch (Exception ex)
