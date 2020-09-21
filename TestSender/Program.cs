@@ -1,5 +1,4 @@
 ﻿using Furesoft.Signals;
-using Newtonsoft.Json.Linq;
 using System;
 using TestModels;
 
@@ -14,7 +13,7 @@ namespace TestSender
         {
             Signal.EnableLogging();
 
-            var queue = MessageQueue.CreateProducer("signals.testqueue");
+            var queue = MessageQueue.Open("signals.testqueue");
             queue.Subscribe<TestMessage>(_ =>
             {
                 Console.WriteLine(_.Message);

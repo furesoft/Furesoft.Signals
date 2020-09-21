@@ -2,6 +2,8 @@
 using Furesoft.Signals.Messages;
 using System;
 using System.Collections.Generic;
+using System.IO;
+using System.IO.MemoryMappedFiles;
 
 namespace Furesoft.Signals
 {
@@ -53,6 +55,19 @@ namespace Furesoft.Signals
             q._com.StartReader();
 
             return q;
+        }
+
+        public static MessageQueue Open(string name)
+        {
+            try
+            {
+                MemoryMappedFile.OpenExisting(name);
+                return CreateConsumer(name);
+            }
+            catch (FileNotFoundException ex)
+            {
+                return CreateProducer(name);
+            }
         }
 
         public static MessageQueue CreateConsumer(string name)

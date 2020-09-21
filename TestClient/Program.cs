@@ -72,7 +72,7 @@ namespace TestClient
 
         private static void Main(string[] args)
         {
-            var queue = MessageQueue.CreateConsumer("signals.testqueue");
+            var queue = MessageQueue.Open("signals.testqueue");
             queue.Subscribe<TestMessage>(_ =>
             {
                 Console.WriteLine(_.Message);
