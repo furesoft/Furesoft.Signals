@@ -5,7 +5,7 @@ Simple IPC through Signals
 - Functions
 - Events
 - Signals
-- Change Call Behavior through Attributes
+- MessageQueue
 
 [![Build status](https://ci.appveyor.com/api/projects/status/peu14ie5uqmf6ho6?svg=true)](https://ci.appveyor.com/project/furesoft/furesoft-signals)
 
