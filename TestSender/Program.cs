@@ -9,7 +9,7 @@ namespace TestSender
         private static SharedObject<int> shared;
         private static SharedObject<int[]> shared_arr;
 
-        private static void Main(string[] args)
+        private static async System.Threading.Tasks.Task Main(string[] args)
         {
             var queue = MessageQueue.Open("signals.testqueue");
             queue.Subscribe<TestMessage>(_ =>
@@ -20,7 +20,7 @@ namespace TestSender
 
             queue.Publish(new TestMessage { Message = "hello world" });
 
-            Console.Read();
+            await queue.Task;
         }
     }
 }

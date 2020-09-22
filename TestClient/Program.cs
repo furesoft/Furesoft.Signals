@@ -42,7 +42,7 @@ namespace TestClient
         private static SharedObject<int> shared;
         private static SharedObject<int[]> shared_arr;
 
-        private static void Main(string[] args)
+        private static async System.Threading.Tasks.Task Main(string[] args)
         {
             var queue = MessageQueue.Open("signals.testqueue");
             queue.Subscribe<TestMessage>(_ =>
@@ -52,10 +52,10 @@ namespace TestClient
 
             queue.Echo<TestMessage>();
 
-            var channel = Signal.CreateSenderChannel("signals.test8");
+            var channel = Signal.OpenChannel("signals.test8");
             Signal.CollectAllShared(channel);
 
-            Console.Read();
+            await queue.Task;
         }
     }
 }

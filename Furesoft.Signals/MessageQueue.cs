@@ -4,6 +4,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.IO.MemoryMappedFiles;
+using System.Threading.Tasks;
 
 namespace Furesoft.Signals
 {
@@ -11,6 +12,7 @@ namespace Furesoft.Signals
     {
         private MemoryMappedFileCommunicator _com;
         private List<MessageQueueHandler> _handlers = new List<MessageQueueHandler>();
+        public Task Task => _tcs.Task;
 
         public void Subscribe<T>(Action<T> callback)
         {
@@ -92,6 +94,8 @@ namespace Furesoft.Signals
 
             return q;
         }
+
+        private TaskCompletionSource<object> _tcs = new TaskCompletionSource<object>();
 
         public void Publish<T>(T obj)
         {
