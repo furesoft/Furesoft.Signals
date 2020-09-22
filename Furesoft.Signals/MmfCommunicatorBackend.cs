@@ -14,20 +14,18 @@ namespace Furesoft.Signals
 
         public void Initialize(string name, long capacity, bool isOwner)
         {
+            communicator = new MemoryMappedFileCommunicator(name, capacity);
             if (isOwner)
             {
-                communicator = new MemoryMappedFileCommunicator(name, capacity);
                 communicator.ReadPosition = 2000;
                 communicator.WritePosition = 0;
-                communicator.StartReader();
             }
             else
             {
-                communicator = new MemoryMappedFileCommunicator(name, capacity);
                 communicator.WritePosition = 2000;
                 communicator.ReadPosition = 0;
-                communicator.StartReader();
             }
+            communicator.StartReader();
 
             communicator.DataReceived += Communicator_DataReceived;
         }
