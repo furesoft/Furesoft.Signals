@@ -226,23 +226,23 @@ namespace Furesoft.Signals
             return channel;
         }
 
-        public static IpcChannel CreateRecieverChannel<TBackend>(int name, Action<IpcConfiguration> configurator = null)
+        private static IpcChannel CreateRecieverChannel<TBackend>(int name, Action<IpcConfiguration> configurator = null)
             where TBackend : ISignalBackend, new()
         {
             return CreateRecieverChannel<TBackend>(name.ToString(), configurator);
         }
 
-        public static IpcChannel CreateRecieverChannel(string name, Action<IpcConfiguration> configurator = null)
+        private static IpcChannel CreateRecieverChannel(string name, Action<IpcConfiguration> configurator = null)
         {
             return CreateRecieverChannel<MmfCommunicatorBackend>(name, configurator);
         }
 
-        public static IpcChannel CreateSenderChannel(string name, Action<IpcConfiguration> configurator = null)
+        private static IpcChannel CreateSenderChannel(string name, Action<IpcConfiguration> configurator = null)
         {
             return CreateSenderChannel<MmfCommunicatorBackend>(name, configurator);
         }
 
-        public static IpcChannel CreateSenderChannel<TBackend>(string name, Action<IpcConfiguration> configurator = null)
+        private static IpcChannel CreateSenderChannel<TBackend>(string name, Action<IpcConfiguration> configurator = null)
             where TBackend : ISignalBackend, new()
         {
             var channel = new IpcChannel
@@ -268,7 +268,7 @@ namespace Furesoft.Signals
             return channel;
         }
 
-        public static IpcChannel CreateSenderChannel(int name, Action<IpcConfiguration> configurator = null)
+        private static IpcChannel CreateSenderChannel(int name, Action<IpcConfiguration> configurator = null)
         {
             return CreateSenderChannel(name.ToString(), configurator);
         }
@@ -311,12 +311,6 @@ namespace Furesoft.Signals
                     callback(obj);
                 }
             };
-        }
-
-        internal enum MethodConstants
-        {
-            GetSignature = 316497852,
-            GetAllIds = 316497853,
         }
 
         private static readonly NLog.Logger Logger = NLog.LogManager.GetCurrentClassLogger();
