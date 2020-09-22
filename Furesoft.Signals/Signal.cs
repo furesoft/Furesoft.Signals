@@ -5,6 +5,7 @@ using Newtonsoft.Json.Linq;
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.IO.MemoryMappedFiles;
 using System.Linq;
 using System.Reflection;
 using System.Threading.Tasks;
@@ -13,6 +14,19 @@ namespace Furesoft.Signals
 {
     public static class Signal
     {
+        public static IpcChannel OpenChannel(string name)
+        {
+            try
+            {
+                MemoryMappedFile.OpenExisting(name);
+                return CreateRecieverChannel(name);
+            }
+            catch (FileNotFoundException ex)
+            {
+                return CreateSenderChannel(name);
+            }
+        }
+
         public static ISerializer Serializer = new JsonSerializer();
 
         public static void CallEvent<EventType>(IpcChannel channel, EventType et)
