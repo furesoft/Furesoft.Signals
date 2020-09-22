@@ -41,14 +41,17 @@ namespace TestClient
 
         private static SharedObject<int> shared;
         private static SharedObject<int[]> shared_arr;
+        private static MessageQueue queue;
 
         private static async System.Threading.Tasks.Task Main(string[] args)
         {
-            var queue = MessageQueue.Open("signals.testqueue");
+            queue = MessageQueue.Open("signals.testqueue");
             queue.Subscribe<TestMessage>(_ =>
             {
                 Console.WriteLine(_.Message);
             });
+
+            AppDomain.CurrentDomain.ProcessExit += CurrentDomain_ProcessExit;
 
             queue.Echo<TestMessage>();
 
@@ -56,6 +59,11 @@ namespace TestClient
             Signal.CollectAllShared(channel);
 
             await queue.Task;
+        }
+
+        private static void CurrentDomain_ProcessExit(object sender, EventArgs e)
+        {
+            queue.Dispose();
         }
     }
 }

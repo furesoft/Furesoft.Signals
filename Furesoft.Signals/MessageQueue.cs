@@ -108,6 +108,8 @@ namespace Furesoft.Signals
 
         public void Dispose()
         {
+            _tcs.SetResult(null);
+
             _handlers.Clear();
             _com.Dispose();
         }

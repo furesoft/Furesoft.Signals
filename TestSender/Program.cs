@@ -8,10 +8,13 @@ namespace TestSender
     {
         private static SharedObject<int> shared;
         private static SharedObject<int[]> shared_arr;
+        private static MessageQueue queue;
 
         private static async System.Threading.Tasks.Task Main(string[] args)
         {
-            var queue = MessageQueue.Open("signals.testqueue");
+            queue = MessageQueue.Open("signals.testqueue");
+            AppDomain.CurrentDomain.ProcessExit += CurrentDomain_ProcessExit;
+
             queue.Subscribe<TestMessage>(_ =>
             {
                 Console.WriteLine(_.Message);
@@ -21,6 +24,11 @@ namespace TestSender
             queue.Publish(new TestMessage { Message = "hello world" });
 
             await queue.Task;
+        }
+
+        private static void CurrentDomain_ProcessExit(object sender, EventArgs e)
+        {
+            queue.Dispose();
         }
     }
 }
