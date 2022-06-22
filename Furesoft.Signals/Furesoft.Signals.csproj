@@ -21,7 +21,7 @@ Features: SharedMethods, SharedObjects, Events, MessageQueue
 
   <ItemGroup>
     <PackageReference Include="Microsoft.CSharp" Version="4.7.0" />
-    <PackageReference Include="Newtonsoft.Json" Version="12.0.3" />
+    <PackageReference Include="Newtonsoft.Json" Version="13.0.1" />
     <PackageReference Include="NLog" Version="4.6.8" />
   </ItemGroup>
 </Project>
